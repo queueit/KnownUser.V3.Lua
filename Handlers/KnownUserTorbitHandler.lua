@@ -40,7 +40,7 @@ aHandler.handle = function(customerId, secretKey, req, odn, resp, originalReq)
 		end
 		
 		resp.addCookie( .. ) -- http only?  secure? (both should be false, so its properly OK). path should be "/"
-		resp.setHeader( .. ) -- from docs:  If you need to set a domain with a leading dot (ex .walmart.com) use the addHeader function instead		
+		resp.setHeader( .. ) -- from docs:  If you need to set a domain with a leading dot (ex .somedomain.com) use the addHeader function instead		
 	end
 	
 	-- TODO: Implement
