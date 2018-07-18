@@ -57,11 +57,7 @@ local function isCookieValid(secretKey, cookieNameValueMap, eventId, cookieValid
 		fixedCookieValidityMinutes = cookieNameValueMap["FixedValidityMins"]	
     end
 	
-	if (iHelpers.debug.enabled == true) then
-		iHelpers.debug.hashProvidedByRequest = cookieNameValueMap["Hash"]
-	end
-
-    local hashValue = generateHash(
+	local hashValue = generateHash(
 		cookieNameValueMap["EventId"], 
 		cookieNameValueMap["QueueId"],
 		fixedCookieValidityMinutes,

@@ -5,7 +5,7 @@ local utils = require("Utils")
 local userInQueueStateCookieRepository = require("UserInQueueStateCookieRepository")
 
 local svc = {
-	SDK_VERSION = "3.5.1-beta1"
+	SDK_VERSION = "3.5.1-beta2"
 }
 
 -- Private functions
@@ -65,11 +65,7 @@ local function getVaidationErrorResult(customerId, targetUrl, config, qParams, e
 end
 
 local function getQueueITTokenValidationResult(customerId, targetUrl, eventId, secretKey, config, queueParams)
-    if (iHelpers.debug.enabled == true) then
-		iHelpers.debug.hashProvidedByRequest = queueParams.hashCode
-	end
-	
-	local calculatedHash = iHelpers.hash.hmac_sha256_encode(queueParams.queueITTokenWithoutHash, secretKey)
+    local calculatedHash = iHelpers.hash.hmac_sha256_encode(queueParams.queueITTokenWithoutHash, secretKey)
     if (string.upper(calculatedHash) ~= string.upper(queueParams.hashCode)) then
         return getVaidationErrorResult(customerId, targetUrl, config, queueParams, "hash")
     end

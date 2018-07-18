@@ -12,12 +12,7 @@ aHandler.handle = function(customerId, secretKey, integrationConfigJson, request
 	assert(request_rec ~= nil, "request_rec invalid")
 	
 	-- Implement required helpers
-	-- ********************************************************************************
-	iHelpers.debug.enabled = true
-	iHelpers.debug.print = function(text)		
-		request_rec:puts(text .. "\n")
-	end
-	
+	-- ********************************************************************************		
 	iHelpers.request.getHeader = function(name)
 		return request_rec.headers_in[name]
 	end
@@ -46,10 +41,21 @@ aHandler.handle = function(customerId, secretKey, integrationConfigJson, request
 		}
 	end
 	iHelpers.hash.hmac_sha256_encode = function(message, key)
-		--------------------------------------------------------------------------------------
-		-- ISSUES WITH SHA256.HMAC NOT LOADING CORRECTLY, SO WE CURRENTLY BYPASS VALIDATION --
-		--------------------------------------------------------------------------------------
-		return iHelpers.debug.hashProvidedByRequest 
+		local n = os.tmpname()
+		
+		-- Calling external program to calculate hash and pipe it into temp file
+		-- this exe must be in root folder of Apache
+		-- replace this part with whatever you have available
+		os.execute('Sha256Hmac.exe "' .. message ..'" "' .. key .. '" > ' .. n)
+
+		local hash = nil
+		for line in io.lines(n) do
+			hash = line
+		end
+
+		os.remove(n)
+
+		return hash
 	end	
 	iHelpers.json.parse = function(jsonStr)
 		return jsonHelper.parse(jsonStr)

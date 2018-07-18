@@ -45,14 +45,6 @@ local iHelpers =
 		parse = function(jsonStr)
 			error("json.encode - not implemented")
 		end
-	},
-	debug = 
-	{
-		enabled = false,
-		print = function(text)
-			error("debug.print - not implemented")
-		end,
-		hashProvidedByRequest = ""
 	}
 }
 
