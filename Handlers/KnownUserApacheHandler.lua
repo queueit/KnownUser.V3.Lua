@@ -24,6 +24,12 @@ aHandler.handle = function(customerId, secretKey, integrationConfigJson, request
 
 		return cookieValue
 	end
+	iHelpers.request.getAbsoluteUri = function()
+		return "http://" .. request_rec.hostname .. ":" .. request_rec.port .. request_rec.unparsed_uri		
+	end
+	iHelpers.request.getUserHostAddress = function()
+		return request_rec.useragent_ip
+	end
 	iHelpers.response.setCookie = function(name, value, expire, domain)
 		if (domain == nil) then
 			domain = ""
@@ -39,7 +45,6 @@ aHandler.handle = function(customerId, secretKey, integrationConfigJson, request
 			domain = domain
 		}
 	end
-		
 	-- ********************************************************************************
 	-- END Implement required helpers
 
@@ -50,7 +55,7 @@ aHandler.handle = function(customerId, secretKey, integrationConfigJson, request
 	--end
 
 	local queueitToken = request_rec:parseargs()["queueittoken"]
-	local fullUrl = "http://" .. request_rec.hostname .. ":" .. request_rec.port .. request_rec.unparsed_uri 
+	local fullUrl = iHelpers.request.getAbsoluteUri()
 	local currentUrlWithoutQueueitToken = fullUrl:gsub("([\\%?%&])(" .. knownUser.QUEUEIT_TOKEN_KEY .. "=[^&]*)", "")
 	
 	local validationResult = knownUser.validateRequestByIntegrationConfig(currentUrlWithoutQueueitToken, queueitToken, integrationConfigJson, customerId, secretKey)
