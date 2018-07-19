@@ -1,6 +1,6 @@
--- include parent folder in package path (windows file system)
--- so all require calls to KUv3 files will work from Test folder
-package.path = "..\\?.lua;" .. package.path
+-- Update path with parent folders so test run can find all needed lua files
+package.path = "..\\..\\SDK\\?.lua;" .. package.path
+package.path = "..\\..\\Helpers\\?.lua;" .. package.path
 
 -- preconditions
 -- INSTALL: https://luarocks.org/modules/luarocks/sha2
