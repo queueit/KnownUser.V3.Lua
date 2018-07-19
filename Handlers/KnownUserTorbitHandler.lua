@@ -1,5 +1,4 @@
 iHelpers = require("KnownUserImplementationHelpers")
-jsonHelper = require("JsonHelper")
 knownUser = require("KnownUser")
 utils = require("Utils")
 
@@ -41,16 +40,7 @@ aHandler.handle = function(customerId, secretKey, req, odn, resp, originalReq)
 		
 		resp.addCookie( .. ) -- http only?  secure? (both should be false, so its properly OK). path should be "/"
 		resp.setHeader( .. ) -- from docs:  If you need to set a domain with a leading dot (ex .somedomain.com) use the addHeader function instead		
-	end
-	
-	-- TODO: Implement
-	iHelpers.hash.hmac_sha256_encode = function(message, key)
-		error("hash.hmac_sha256_encode - not implemented")
-	end
-
-	iHelpers.json.parse = function(jsonStr)
-		return jsonHelper.parse(jsonStr)
-	end
+	end	
 	-- ********************************************************************************
 	-- END Implement required helpers
 	

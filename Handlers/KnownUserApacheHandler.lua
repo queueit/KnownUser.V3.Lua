@@ -1,5 +1,4 @@
 iHelpers = require("KnownUserImplementationHelpers")
-jsonHelper = require("JsonHelper")
 knownUser = require("KnownUser")
 utils = require("Utils")
 
@@ -40,26 +39,7 @@ aHandler.handle = function(customerId, secretKey, integrationConfigJson, request
 			domain = domain
 		}
 	end
-	iHelpers.hash.hmac_sha256_encode = function(message, key)
-		local n = os.tmpname()
 		
-		-- Calling external program to calculate hash and pipe it into temp file
-		-- this exe must be in root folder of Apache
-		-- replace this part with whatever you have available
-		os.execute('Sha256Hmac.exe "' .. message ..'" "' .. key .. '" > ' .. n)
-
-		local hash = nil
-		for line in io.lines(n) do
-			hash = line
-		end
-
-		os.remove(n)
-
-		return hash
-	end	
-	iHelpers.json.parse = function(jsonStr)
-		return jsonHelper.parse(jsonStr)
-	end
 	-- ********************************************************************************
 	-- END Implement required helpers
 
