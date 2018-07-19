@@ -202,9 +202,9 @@ function UserInQueueStateCookieRepositoryTest()
 	
 		cookieKey = userInQueueStateCookieRepository.getCookieKey(eventId)
         assert( mockCookies[cookieKey] ~= nil )
-		assert( tonumber(mockCookies[cookieKey].expire) == -1 )
+		assert( tonumber(mockCookies[cookieKey].expire) == 1 )
 		assert( mockCookies[cookieKey].domain == cookieDomain )
-		assert( mockCookies[cookieKey].value == nil )
+		assert( mockCookies[cookieKey].value == "deleted" )
     end
 	test_cancelQueueCookie()
 	

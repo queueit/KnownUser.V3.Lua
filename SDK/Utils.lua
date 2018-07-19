@@ -3,9 +3,23 @@ local utils =
 	toString = function(v)
 		if (v == nil) then 
 			return ""
-		else 
+		end
+		
+		local vType = type(v)
+
+		if (vType == "string" or vType == "number") then
 			return v
 		end
+
+		if (vType == "boolean") then
+			if (v == true) then
+				return "true"
+			else
+				return "false"
+			end
+		end
+
+		error("toString called on unsupported type: " .. type(v))
 	end,
 	urlEncode = function(str)
 		if (str) then

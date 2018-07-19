@@ -112,7 +112,7 @@ end
 
 repo.cancelQueueCookie = function(eventId, cookieDomain)
     local cookieKey = repo.getCookieKey(eventId)
-	iHelpers.response.setCookie(cookieKey, nil, -1, cookieDomain)
+	iHelpers.response.setCookie(cookieKey, "deleted", 1, cookieDomain)
 end
 
 repo.getState = function(eventId, cookieValidityMinutes, secretKey, validateTime)
