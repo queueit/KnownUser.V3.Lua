@@ -1,14 +1,55 @@
 # KnownUser.V3.Lua
 The Queue-it Security Framework is used to ensure that end users cannot bypass the queue by adding a server-side integration to your server. It was developed and verified with Lua v.5.1.
 
-## Example usage
+## Introduction
+When a user is redirected back from the queue to your website, the queue engine can attach a query string parameter (`queueittoken`) containing some information about the user. 
+The most important fields of the `queueittoken` are:
+
+ - q - the users unique queue identifier
+ - ts - a timestamp of how long this redirect is valid
+ - h - a hash of the token
+
+
+The high level logic is as follows:
+
+![The KnownUser validation flow](https://github.com/queueit/KnownUser.V3.Lua/blob/master/Documentation/KnownUserFlow.png)
+
+ 1. User requests a page on your server
+ 2. The validation method sees that the has no Queue-it session cookie and no `queueittoken` and sends him to the correct queue based on the configuration
+ 3. User waits in the queue
+ 4. User is redirected back to your website, now with a `queueittoken`
+ 5. The validation method validates the `queueittoken` and creates a Queue-it session cookie
+ 6. The user browses to a new page and the Queue-it session cookie will let him go there without queuing again
+
+## How to validate a user
+To validate that the current user is allowed to enter your website (has been through the queue) these steps are needed:
+
+ 1. Providing the queue configuration to the KnownUser validation
+ 2. Validate the `queueittoken` and store a session cookie
+
+
+### 1. Providing the queue configuration
+The recommended way is to use the Go Queue-it self-service portal to setup the configuration. 
+The configuration specifies a set of Triggers and Actions. A Trigger is an expression matching one, more or all URLs on your website. 
+When a user enter your website and the URL matches a Trigger-expression the corresponding Action will be triggered. 
+The Action specifies which queue the users should be sent to. 
+In this way you can specify which queue(s) should protect which page(s) on the fly without changing the server-side integration.
+
+This configuration can then be downloaded to your application server.
+
+### 2. Validate the `queueittoken` and store a session cookie
+To validate that the user has been through the queue, use the `KnownUser.ValidateRequestByIntegrationConfig()` method. 
+This call will validate the timestamp and hash and if valid create a "QueueITAccepted-SDFrts345E-V3_[EventId]" cookie with a TTL as specified in the configuration.
+If the timestamp or hash is invalid, the user is send back to the queue.
+
+## Implementation
 
 #### Apache web server
 Prerequirements: 
 - Lua module enabled. 
-- Content of SDK folder, Helpers/JsonHelper.lua and Handlers/KnownUserApacheHandler.lua has been copied somewhere and added to lua path in Apache config. 
+- Content of SDK folder, `Helpers/JsonHelper.lua` and `Handlers/KnownUserApacheHandler.lua` has been copied somewhere and added to lua path in Apache config. 
 
-Create **resource.lua** an put in htdocs folder in Apache installation folder:
+Create `resource.lua` an put in htdocs folder in Apache installation folder:
 ```
 function initRequiredHelpers()
     iHelpers = require("KnownUserImplementationHelpers")
@@ -57,6 +98,6 @@ function handle(request_rec)
     request_rec)
 end
 ```
-**( ! ) Please note the above code cant be used as it, you will need to update the missing parts like keys, sha256 function and provide integration config json**
+Note in the above example, you need to fill in your key, sha256 function and provide the integration config json.
 
-Visit **resource.lua** using a browser to see it works.
+Visit `resource.lua` using a browser to see it works.
