@@ -1,6 +1,6 @@
 -- Update path with parent folders so test run can find all needed lua files
-package.path = "..\\..\\SDK\\?.lua;" .. package.path
-package.path = "..\\..\\Helpers\\?.lua;" .. package.path
+package.path = "../../SDK/?.lua;" .. package.path
+package.path = "../../Helpers/?.lua;" .. package.path
 
 -- preconditions
 -- INSTALL: https://luarocks.org/modules/luarocks/sha2
