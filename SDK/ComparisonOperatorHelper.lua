@@ -107,7 +107,7 @@ local model = {
 		end
 		if (opt == "EndsWith") then
 			return endsWith(value, valueToCompare, isNegative, isIgnoreCase)
-		end		
+		end
 		if (opt == "EqualsAny") then
 			return equalsAny(value, valuesToCompare, isNegative, isIgnoreCase)
 		end
