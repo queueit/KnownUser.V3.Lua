@@ -22,6 +22,9 @@ iHelpers.json.parse = function(jsonStr)
 	return jsonHelper.parse(jsonStr)
 end
 
+-- clear screen
+os.execute("cls")
+
 -- run tests
 require("KnownUserImplementationHelpersTest")
 require("QueueUrlParamsTest")
