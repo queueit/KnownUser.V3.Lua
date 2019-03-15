@@ -39,7 +39,7 @@ This configuration can then be downloaded to your application server.
 Read more about how *[here](https://github.com/queueit/KnownUser.V3.Lua/tree/master/Documentation)*.  
 
 ### 2. Validate the `queueittoken` and store a session cookie
-To validate that the user has been through the queue, use the `KnownUser.ValidateRequestByIntegrationConfig()` method. 
+To validate that the user has been through the queue, use the `knownUser.validateRequestByIntegrationConfig` method. 
 This call will validate the timestamp and hash and if valid create a "QueueITAccepted-SDFrts345E-V3_[EventId]" cookie with a TTL as specified in the configuration.
 If the timestamp or hash is invalid, the user is send back to the queue.
 
