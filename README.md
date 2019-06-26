@@ -56,7 +56,7 @@ Currently an example (+ handler) for Apache on Windows is available (see below),
 - read request cookies
 - write response cookies
 
-#### Apache web server
+### Apache web server
 Example using KnownUserApacheHandler.lua on Apache running on Windows.
 
 Prerequirements: 
@@ -105,7 +105,7 @@ function handle(request_rec)
 
   kuHandler = require("KnownUserApacheHandler")
 	
-  return kuHandler.handle(
+  return kuHandler.handleByIntegrationConfig(
     "... INSERT CUSTOMER ID ...", 
     "... INSERT SECRET KEY ...", 
     integrationConfigJson, 
@@ -115,3 +115,34 @@ end
 Note in the above example, you need to fill in your key, sha256 function and provide the integration config json.
 
 Visit `resource.lua` using a browser to see it works.
+
+#### Using local queue configuration
+As an alternative to the above, you can specify the configuration in code without using the Trigger/Action paradigm. 
+In this case it is important *only to queue-up page requests* and not requests for resources or AJAX calls. 
+This can be done by adding custom filtering logic before caling the `kuHandler.handleByLocalConfig()` method. 
+
+The following is an example of how the handle function would look if the configuration is specified in code:
+
+```
+function handle(request_rec)
+  local models = require("Models")
+  eventconfig = models.QueueEventConfig.create()
+  eventconfig.eventId = ""; -- ID of the queue to use
+  eventconfig.queueDomain = "xxx.queue-it.net"; -- Domian name of the queue - usually in the format [CustomerId].queue-it.net
+  -- eventconfig.cookieDomain = ".my-shop.com"; -- Optional - Domain name where the Queue-it session cookie should be saved
+  eventconfig.cookieValidityMinute = 15; -- Optional - Validity of the Queue-it session cookie. Default is 10 minutes
+  eventconfig.extendCookieValidity = true; -- Optional - Should the Queue-it session cookie validity time be extended each time the validation runs? Default is true.
+  -- eventconfig.culture = "en-US"; -- Optional - Culture of the queue ticket layout in the format specified here: https:-- msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx Default is to use what is specified on Event
+  -- eventconfig.layoutName = "NameOfYourCustomLayout"; -- Optional - Name of the queue ticket layout - e.g. "Default layout by Queue-it". Default is to take what is specified on the Event
+
+  initRequiredHelpers()
+
+  kuHandler = require("KnownUserApacheHandler")
+	
+  return kuHandler.handleByLocalConfig(
+    "... INSERT CUSTOMER ID ...", 
+    "... INSERT SECRET KEY ...", 
+    eventconfig, 
+    request_rec)
+end
+```
