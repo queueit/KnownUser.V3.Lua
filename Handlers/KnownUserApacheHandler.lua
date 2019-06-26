@@ -4,11 +4,12 @@ utils = require("Utils")
 
 local aHandler = {}
 
-aHandler.handle = function(customerId, secretKey, integrationConfigJson, request_rec)	
+local function handle(customerId, secretKey, config, isIntegrationConfig, request_rec)	
 	assert(customerId ~= nil, "customerId invalid")
 	assert(secretKey ~= nil, "secretKey invalid")
-	assert(integrationConfigJson ~= nil, "integrationConfigJson invalid")
-	assert(request_rec ~= nil, "request_rec invalid")
+	assert(config ~= nil, "config invalid")
+	assert(isIntegrationConfig ~= nil, "isIntegrationConfig invalid")
+	assert(request_rec ~= nil, "request_rec invalid")	
 	
 	-- Implement required helpers
 	-- ********************************************************************************		
@@ -58,8 +59,13 @@ aHandler.handle = function(customerId, secretKey, integrationConfigJson, request
 	local fullUrl = iHelpers.request.getAbsoluteUri()
 	local currentUrlWithoutQueueitToken = fullUrl:gsub("([\\%?%&])(" .. knownUser.QUEUEIT_TOKEN_KEY .. "=[^&]*)", "")
 	
-	local validationResult = knownUser.validateRequestByIntegrationConfig(currentUrlWithoutQueueitToken, queueitToken, integrationConfigJson, customerId, secretKey)
-
+	local validationResult = nil
+	if (isIntegrationConfig) then
+		validationResult = knownUser.validateRequestByIntegrationConfig(currentUrlWithoutQueueitToken, queueitToken, config, customerId, secretKey)
+	else
+	    validationResult = knownUser.resolveQueueRequestByLocalConfig(currentUrlWithoutQueueitToken, queueitToken, config, customerId, secretKey)
+	end
+		
 	if (validationResult:doRedirect()) then
 		if (validationResult.isAjaxResult == false) then
 			request_rec.headers_out["Location"] = validationResult.redirectUrl			
@@ -75,6 +81,14 @@ aHandler.handle = function(customerId, secretKey, integrationConfigJson, request
 			return apache2.HTTP_MOVED_TEMPORARILY
 		end
 	end
+end
+
+aHandler.handleByIntegrationConfig = function(customerId, secretKey, integrationConfigJson, request_rec)
+   return handle(customerId, secretKey, integrationConfigJson, true, request_rec)
+end
+
+aHandler.handleByLocalConfig = function(customerId, secretKey, queueEventConfig, request_rec)
+	return handle(customerId, secretKey, queueEventConfig, false, request_rec)
 end
 
 return aHandler
