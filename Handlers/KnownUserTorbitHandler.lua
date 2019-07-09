@@ -65,7 +65,7 @@ aHandler.handle = function(customerId, secretKey, req, odn, resp, originalReq)
 			resp.setStatusCode(200)
 		end
 	else
-		-- Request can continue - we remove queueittoken form querystring parameter to avoid sharing of user specific token	if did not match
+		-- Request can continue - we remove queueittoken form querystring parameter to avoid sharing of user specific token
 		if (fullUrl ~= currentUrlWithoutQueueitToken and validationResult.actionType ~= nil) then
 			resp.setHeader("Location", currentUrlWithoutQueueitToken)
 			resp.setStatusCode(302)
