@@ -49,18 +49,19 @@ This Lua KnownUser option, should support many different enviroment setups.
 Therefore as much code as possible is found within the SDK (https://github.com/queueit/KnownUser.V3.Lua/tree/master/SDK) and the rest is exposed in specific handlers. With this solution the SDK code stays unmodified and only a little work is needed to create or modify a existing handler (https://github.com/queueit/KnownUser.V3.Lua/tree/master/Handlers).
 
 Currently an example (+ handler) for Apache on Windows is available (see below), so if you need something else please reach out to us and then we can help out with creating a new handler, e.g. implementing missing parts from KnownUserImplementationHelpers:
-- json parsing
-- hmac sha256 encoding
-- read request url and host (ip)
-- read request headers
-- read request cookies
-- write response cookies
+- JSON parsing
+- HMAC SHA256 encoding
+- Read request url and host (ip)
+- Read request headers
+- Read request cookies
+- Write response cookies
 
 ### Apache web server
-Example using KnownUserApacheHandler.lua on Apache running on Windows.
+Example using KnownUserApacheHandler.lua on Apache.
 
 Prerequirements: 
-- Lua module enabled. 
+- Lua module enabled.
+- HMAC Lua library installed (https://luarocks.org/modules/luarocks/sha2)
 - Content of SDK folder, `Helpers/JsonHelper.lua` and `Handlers/KnownUserApacheHandler.lua` has been copied somewhere and added to lua path in Apache config. 
 
 Create `resource.lua` an put in htdocs folder in Apache installation folder:
@@ -74,24 +75,14 @@ function initRequiredHelpers()
     end
 
     iHelpers.hash.hmac_sha256_encode = function(message, key)		
-      local n = os.tmpname()
-		
-      -- Calling external program to calculate hash and pipe it into temp file
-      -- this exe must be in root folder of Apache
-      -- replace this part with whatever you have available
-      os.execute('Sha256Hmac.exe "' .. message ..'" "' .. key .. '" > ' .. n)
-
-      local hash = nil
-      for line in io.lines(n) do
-	  hash = line
+      local function bintohex(s)
+        return (s:gsub('(.)', function(c) 
+	  return string.format('%02x', string.byte(c)) 
+	  end))
       end
 
-      os.remove(n)
-
-      if (hash == nil or hash == "") then
-	  error("hmac_sha256_encode failed: Please verify your implementation code")		
-      end
-      return hash
+      require "hmac.sha2"
+      return bintohex(hmac.sha256(message, key))      
     end
 end
 
@@ -112,7 +103,7 @@ function handle(request_rec)
     request_rec)
 end
 ```
-Note in the above example, you need to fill in your key, sha256 function and provide the integration config json.
+Note in the above example, you need to fill in your Customer ID, Secret key and provide the integration config JSON.
 
 Visit `resource.lua` using a browser to see it works.
 
