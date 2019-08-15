@@ -48,7 +48,7 @@ If the timestamp or hash is invalid, the user is send back to the queue.
 This Lua KnownUser option, should support many different enviroment setups.
 Therefore as much code as possible is found within the SDK (https://github.com/queueit/KnownUser.V3.Lua/tree/master/SDK) and the rest is exposed in specific handlers. With this solution the SDK code stays unmodified and only a little work is needed to create or modify a existing handler (https://github.com/queueit/KnownUser.V3.Lua/tree/master/Handlers).
 
-Currently an example (+ handler) for Apache on Windows is available (see below), so if you need something else please reach out to us and then we can help out with creating a new handler, e.g. implementing missing parts from KnownUserImplementationHelpers:
+Currently an example handler for Apache is available (see below), so if you need something else please reach out to us and then we can help out with creating a new handler, e.g. implementing missing parts from KnownUserImplementationHelpers:
 - JSON parsing
 - HMAC SHA256 encoding
 - Read request url and host (ip)
