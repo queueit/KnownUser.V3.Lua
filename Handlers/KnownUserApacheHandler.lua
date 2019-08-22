@@ -4,7 +4,7 @@ utils = require("Utils")
 
 local aHandler = {}
 
-local function handle(customerId, secretKey, config, isIntegrationConfig, request_rec)	
+local function handle(customerId, secretKey, config, isIntegrationConfig, request_rec)
 	assert(customerId ~= nil, "customerId invalid")
 	assert(secretKey ~= nil, "secretKey invalid")
 	assert(config ~= nil, "config invalid")
@@ -16,8 +16,52 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 	iHelpers.request.getHeader = function(name)
 		return request_rec.headers_in[name]
 	end
-	iHelpers.request.getUnescapedCookieValue = function(name) 
-		local cookieValue = request_rec:getcookie(name)
+	iHelpers.request.getUnescapedCookieValue = function(name)
+		-- Alternative to request_rec:getcookie method, 
+		-- which fails if client sends a Cookie header with multiple entries with same name/key.
+		local function getCookieValue(name)
+			local function split(inputstr, sep) 
+				sep=sep or '%s' local t={} 
+				for field,s in string.gmatch(inputstr, "([^"..sep.."]*)("..sep.."?)") do 
+					table.insert(t,field) 
+					if s=="" then 
+						return t 
+					end 
+				end 
+			end
+			
+			if(name == nil) then
+				return nil
+			end
+
+			local cookieHeader = request_rec.headers_in["Cookie"]
+			
+			if(cookieHeader == nil) then
+				return nil
+			end
+				
+			-- Translate name to pattern so it will work correctly in string.find
+			-- ex. translate 'QueueITAccepted-SDFrts345E-V3_event1' to 'QueueITAccepted--SDFrts345E--V3_event1='	
+			name = name:gsub("-", "--") .. "="
+						
+			local matches = split(cookieHeader, ";")
+			
+			if(matches == nil) then
+				return nil
+			end
+			
+			local cookieHeaderPart = matches[1]	
+			
+			startIndex, endIndex = string.find(cookieHeaderPart, name)
+			
+			if(endIndex == nil) then
+				return nil
+			end
+			
+			return cookieHeaderPart:sub(endIndex + 1)		
+		end
+		
+		local cookieValue = getCookieValue(name)
 		
 		if (cookieValue ~= nil) then
 			cookieValue = utils.urlDecode(cookieValue)
@@ -25,34 +69,40 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 
 		return cookieValue
 	end
-	iHelpers.request.getAbsoluteUri = function()
-		return "http://" .. request_rec.hostname .. ":" .. request_rec.port .. request_rec.unparsed_uri		
-	end
 	iHelpers.request.getUserHostAddress = function()
 		return request_rec.useragent_ip
 	end
+	-- Implementation is not using built in r:setcookie method
+	-- because we want to support Apache version < 2.4.12
+	-- where there is bug in that specific method
 	iHelpers.response.setCookie = function(name, value, expire, domain)
 		if (domain == nil) then
 			domain = ""
 		end
-		
-		request_rec:setcookie{
-			key = name,
-			value = value,
-			expires = expire,
-			secure = false,
-			httponly = false,
-			path = "/",
-			domain = domain
-		}
+				
+		local expire_text = ''
+		if expire ~= nil then
+			if type(expire) == "number" then 
+				expire_text = '; Expires=' .. os.date("!%a, %d %b %Y %H:%M:%S GMT", expire)
+			else 
+				expire_text = '; Expires=' .. expire
+		end
+		else 
+			expire_text = ''
+		end
+	
+		request_rec.err_headers_out["Set-Cookie"] = name .. '=' .. value 
+			.. expire_text
+			.. (domain ~= "" and '; Domain=' .. domain or '') 
+			.. '; Path=/'
 	end
 	-- ********************************************************************************
 	-- END Implement required helpers
 
 	--Adding no cache headers to prevent browsers to cache requests
-	request_rec.headers_out["Cache-Control"] = "no-cache, no-store, must-revalidate"
-	request_rec.headers_out["Pragma"] = "no-cache"
-	request_rec.headers_out["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
+	request_rec.err_headers_out["Cache-Control"] = "no-cache, no-store, must-revalidate"
+	request_rec.err_headers_out["Pragma"] = "no-cache"
+	request_rec.err_headers_out["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
 	--end
 
 	local queueitToken = request_rec:parseargs()["queueittoken"]
@@ -67,20 +117,21 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 	end
 		
 	if (validationResult:doRedirect()) then
-		if (validationResult.isAjaxResult == false) then
-			request_rec.headers_out["Location"] = validationResult.redirectUrl			
-			return apache2.HTTP_MOVED_TEMPORARILY		
-		else
-			request_rec.headers_out[validationResult.getAjaxQueueRedirectHeaderKey()] = validationResult:getAjaxRedirectUrl()
-			return apache2.OK
+		if (validationResult.isAjaxResult) then
+			request_rec.err_headers_out[validationResult.getAjaxQueueRedirectHeaderKey()] = validationResult:getAjaxRedirectUrl()            
+		else					
+			request_rec.err_headers_out["Location"] = validationResult.redirectUrl			
+			return apache2.HTTP_MOVED_TEMPORARILY			
 		end
 	else
 		-- Request can continue - we remove queueittoken form querystring parameter to avoid sharing of user specific token
 		if (fullUrl ~= currentUrlWithoutQueueitToken and validationResult.actionType ~= nil) then
-			request_rec.headers_out["Location"] = currentUrlWithoutQueueitToken
+			request_rec.err_headers_out["Location"] = currentUrlWithoutQueueitToken
 			return apache2.HTTP_MOVED_TEMPORARILY
 		end
 	end
+	
+	return apache2.DECLINED
 end
 
 aHandler.handleByIntegrationConfig = function(customerId, secretKey, integrationConfigJson, request_rec)
