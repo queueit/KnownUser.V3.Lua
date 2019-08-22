@@ -71,7 +71,7 @@ LuaMapHandler "{URI_PATTERN}" "{APP_FOLDER}/handler.lua"
 {APP_FOLDER} = Apache www folder where your app/integration is located. Ex. 'C:/wamp64/www/lua'  
 {URI_PATTERN} = Pattern used to match which URLs should go through the handler.   https://httpd.apache.org/docs/trunk/mod/mod_lua.html#luamaphandler
 
-- Copy SDK, Handlers and Helpers (incl. content) to {APP_FOLDER}
+- Copy SDK, Handlers and Helpers folders (incl. content) to {APP_FOLDER}
 
 - Create `handler.lua` in {APP_FOLDER}:
 ```
@@ -108,7 +108,7 @@ Visit `handler.lua` using a browser to see it works.
 #### Using local queue configuration
 As an alternative to the above, you can specify the configuration in code without using the Trigger/Action paradigm. 
 In this case it is important *only to queue-up page requests* and not requests for resources or AJAX calls. 
-This can be done by adding custom filtering logic before caling the `kuHandler.handleByLocalConfig()` method. 
+This can be done by adding custom filtering logic before calling the `kuHandler.handleByLocalConfig()` method. 
 
 The following is an example of how the handle function would look if the configuration is specified in code:
 
