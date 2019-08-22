@@ -13,9 +13,20 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 	
 	-- Implement required helpers
 	-- ********************************************************************************		
+	iHelpers.json.parse = function(jsonStr)
+		local json = require("json")
+		return json.parse(jsonStr)
+	end
+	
+	iHelpers.hash.hmac_sha256_encode = function(message, key)		
+		local sha2 = require("sha2")
+        return sha2.hmac(sha2.sha256, key, message)
+	end
+	
 	iHelpers.request.getHeader = function(name)
 		return request_rec.headers_in[name]
 	end
+	
 	iHelpers.request.getUnescapedCookieValue = function(name)
 		-- Alternative to request_rec:getcookie method, 
 		-- which fails if client sends a Cookie header with multiple entries with same name/key.
@@ -69,9 +80,11 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 
 		return cookieValue
 	end
+	
 	iHelpers.request.getUserHostAddress = function()
 		return request_rec.useragent_ip
 	end
+	
 	-- Implementation is not using built in r:setcookie method
 	-- because we want to support Apache version < 2.4.12
 	-- where there is bug in that specific method
