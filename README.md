@@ -48,10 +48,9 @@ If the timestamp or hash is invalid, the user is send back to the queue.
 This Lua KnownUser option, should support many different enviroment setups.
 Therefore as much code as possible is found within the SDK (https://github.com/queueit/KnownUser.V3.Lua/tree/master/SDK) and the rest is exposed in specific handlers. With this solution the SDK code stays unmodified and only a little work is needed to create or modify a existing handler (https://github.com/queueit/KnownUser.V3.Lua/tree/master/Handlers).
 
-Currently an example handler for Apache is available (see below), so if you need something else please reach out to us and then we can help out with creating a new handler, e.g. implementing missing parts from KnownUserImplementationHelpers:
-- JSON parsing
-- HMAC SHA256 encoding
-- Read request url and host (ip)
+Currently an example handler for Apache (v. 2.4.10+) is available (see below), so if you need something else please reach out to us and then we can help out with creating a new handler, e.g. implementing missing parts from KnownUserImplementationHelpers:
+- Read request URL 
+- Read request host (user agent IP address)
 - Read request headers
 - Read request cookies
 - Write response cookies
@@ -59,31 +58,29 @@ Currently an example handler for Apache is available (see below), so if you need
 ### Apache web server
 Example using KnownUserApacheHandler.lua on Apache.
 
-Prerequirements: 
-- Lua module enabled.
-- HMAC Lua library installed (https://luarocks.org/modules/luarocks/sha2)
-- Content of SDK folder, `Helpers/JsonHelper.lua` and `Handlers/KnownUserApacheHandler.lua` has been copied somewhere and added to lua path in Apache config. 
-
-Create `resource.lua` an put in htdocs folder in Apache installation folder:
+- Edit http.config
 ```
-function initRequiredHelpers()
-    iHelpers = require("KnownUserImplementationHelpers")
-    jsonHelper = require("JsonHelper")
+LoadModule lua_module modules/mod_lua.so
+LuaMapHandler "/lua" "{APP_FOLDER}/handler.lua"
+<IfModule lua_module>
+ LuaPackagePath "{APP_FOLDER}/SDK/?.lua"
+ LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"
+ LuaPackagePath "{APP_FOLDER}/Handlers/?.lua"
+</IfModule>
+```
+{APP_FOLDER} = Apache www folder where your app/integration is located. Ex. 'C:/wamp64/www/lua'  
 
-    iHelpers.json.parse = function(jsonStr)
-      return jsonHelper.parse(jsonStr)
-    end
+- Copy SDK, Handlers and Helpers (incl. content) to {APP_FOLDER}
 
-    iHelpers.hash.hmac_sha256_encode = function(message, key)		
-      local function bintohex(s)
-        return (s:gsub('(.)', function(c) 
-	  return string.format('%02x', string.byte(c)) 
-	  end))
-      end
+- Create `handler.lua` in {APP_FOLDER}:
+```
+local function initRequiredHelpers(request_rec)
+  iHelpers = require("KnownUserImplementationHelpers")
 
-      require "hmac.sha2"
-      return bintohex(hmac.sha256(message, key))      
-    end
+  iHelpers.request.getAbsoluteUri = function()	
+    -- UPDATE BELOW TO MATCH YOUR USE CASE. EX. USE HTTPS AND REMOVE PORT
+    return "http://" .. request_rec.hostname .. ":" .. request_rec.port .. request_rec.unparsed_uri
+  end  
 end
 
 function handle(request_rec)
@@ -103,9 +100,9 @@ function handle(request_rec)
     request_rec)
 end
 ```
-Note in the above example, you need to fill in your Customer ID, Secret key and provide the integration config JSON.
+Note in the above example, you need to fill in your Customer ID, Secret key, provide the integration config JSON and optionally alter code in method getAbsoluteUri.
 
-Visit `resource.lua` using a browser to see it works.
+Visit `handler.lua` using a browser to see it works.
 
 #### Using local queue configuration
 As an alternative to the above, you can specify the configuration in code without using the Trigger/Action paradigm. 
