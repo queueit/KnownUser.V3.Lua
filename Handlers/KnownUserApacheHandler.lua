@@ -41,7 +41,7 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 				end 
 			end
 			
-			if(name == nil) then
+			if (name == nil) then
 				return nil
 			end
 
@@ -51,25 +51,23 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 				return nil
 			end
 				
+			local cookieHeaderParts = split(cookieHeader, ";")
+			
+			if (cookieHeaderParts == nil) then
+				return nil
+			end
+			
 			-- Translate name to pattern so it will work correctly in string.find
 			-- ex. translate 'QueueITAccepted-SDFrts345E-V3_event1' to 'QueueITAccepted--SDFrts345E--V3_event1='	
-			name = name:gsub("-", "--") .. "="
-						
-			local matches = split(cookieHeader, ";")
+			name = name:gsub("-", "--") .. "="			
 			
-			if(matches == nil) then
-				return nil
+			for k, v in pairs(cookieHeaderParts) do
+				startIndex, endIndex = string.find(v, name)
+				
+				if(endIndex ~= nil) then
+					return v:sub(endIndex + 1)		
+				end
 			end
-			
-			local cookieHeaderPart = matches[1]	
-			
-			startIndex, endIndex = string.find(cookieHeaderPart, name)
-			
-			if(endIndex == nil) then
-				return nil
-			end
-			
-			return cookieHeaderPart:sub(endIndex + 1)		
 		end
 		
 		local cookieValue = getCookieValue(name)
@@ -92,22 +90,23 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 		if (domain == nil) then
 			domain = ""
 		end
-				
+		
+		if (value == nil) then
+			value = ""
+		end
+		
+		value = utils.urlEncode(value)
+
 		local expire_text = ''
-		if expire ~= nil then
-			if type(expire) == "number" then 
-				expire_text = '; Expires=' .. os.date("!%a, %d %b %Y %H:%M:%S GMT", expire)
-			else 
-				expire_text = '; Expires=' .. expire
+		if expire ~= nil and type(expire) == "number" and expire > 0 then
+			expire_text = '; Expires=' .. os.date("!%a, %d %b %Y %H:%M:%S GMT", expire)
 		end
-		else 
-			expire_text = ''
-		end
-	
+		
 		request_rec.err_headers_out["Set-Cookie"] = name .. '=' .. value 
 			.. expire_text
 			.. (domain ~= "" and '; Domain=' .. domain or '') 
-			.. '; Path=/'
+			.. '; Path=/;'
+			
 	end
 	-- ********************************************************************************
 	-- END Implement required helpers
