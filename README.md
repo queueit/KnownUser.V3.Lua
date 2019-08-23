@@ -90,7 +90,7 @@ function handle(request_rec)
     ... INSERT INTEGRATION CONFIG ...
   ]]
 	
-  initRequiredHelpers()
+  initRequiredHelpers(request_rec)
 
   kuHandler = require("KnownUserApacheHandler")
 	
