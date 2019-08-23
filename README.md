@@ -124,7 +124,7 @@ function handle(request_rec)
   -- eventconfig.culture = "en-US"; -- Optional, culture of the queue ticket layout in the format specified here: https:-- msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx Default is to use what is specified on Event
   -- eventconfig.layoutName = "NameOfYourCustomLayout"; -- Optional, name of the queue ticket layout e.g. "Default layout by Queue-it". Default is to take what is specified on the Event
 
-  initRequiredHelpers()
+  initRequiredHelpers(request_rec)
 
   kuHandler = require("KnownUserApacheHandler")
 	
