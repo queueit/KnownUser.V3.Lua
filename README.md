@@ -126,7 +126,7 @@ The following is an example of how the handle function would look if the configu
 
 ```
 function handle(request_rec)
-local success, result = pcall
+   local success, result = pcall
    (
      local models = require("Models")
      eventconfig = models.QueueEventConfig.create()
