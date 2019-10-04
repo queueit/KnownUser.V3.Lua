@@ -85,20 +85,32 @@ local function initRequiredHelpers(request_rec)
 end
 
 function handle(request_rec)
-  integrationConfigJson = 
-  [[
-    ... INSERT INTEGRATION CONFIG ...
-  ]]
+   local success, result = pcall
+   (
+     integrationConfigJson = 
+     [[
+       ... INSERT INTEGRATION CONFIG ...
+     ]]
 	
-  initRequiredHelpers(request_rec)
+     initRequiredHelpers(request_rec)
 
-  kuHandler = require("KnownUserApacheHandler")
+     kuHandler = require("KnownUserApacheHandler")
 	
-  return kuHandler.handleByIntegrationConfig(
-    "... INSERT CUSTOMER ID ...", 
-    "... INSERT SECRET KEY ...", 
-    integrationConfigJson, 
-    request_rec)
+     return kuHandler.handleByIntegrationConfig(
+        "... INSERT CUSTOMER ID ...", 
+        "... INSERT SECRET KEY ...", 
+        integrationConfigJson, 
+        request_rec)
+   )
+   
+   if (success) then
+     return result
+   else
+     -- There was an error validating the request
+     -- Use your own logging framework to log the error
+     -- This was a configuration error, so we let the user continue
+     return apache2.DECLINED
+   end   
 end
 ```
 Note in the above example, you need to fill in your Customer ID, Secret key, provide the integration config JSON and optionally alter code in method getAbsoluteUri.
@@ -114,24 +126,36 @@ The following is an example of how the handle function would look if the configu
 
 ```
 function handle(request_rec)
-  local models = require("Models")
-  eventconfig = models.QueueEventConfig.create()
-  eventconfig.eventId = ""; -- ID of the queue to use
-  eventconfig.queueDomain = "xxx.queue-it.net"; -- Domain name of the queue, usually in the format [CustomerId].queue-it.net
-  -- eventconfig.cookieDomain = ".my-shop.com"; -- Optional, domain name where the Queue-it session cookie should be saved
-  eventconfig.cookieValidityMinute = 15; -- Optional, validity of the Queue-it session cookie. Default is 10 minutes.
-  eventconfig.extendCookieValidity = true; -- Optional, should the Queue-it session cookie validity time be extended each time the validation runs? Default is true.
-  -- eventconfig.culture = "en-US"; -- Optional, culture of the queue ticket layout in the format specified here: https:-- msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx Default is to use what is specified on Event
-  -- eventconfig.layoutName = "NameOfYourCustomLayout"; -- Optional, name of the queue ticket layout e.g. "Default layout by Queue-it". Default is to take what is specified on the Event
+local success, result = pcall
+   (
+     local models = require("Models")
+     eventconfig = models.QueueEventConfig.create()
+     eventconfig.eventId = ""; -- ID of the queue to use
+     eventconfig.queueDomain = "xxx.queue-it.net"; -- Domain name of the queue, usually in the format [CustomerId].queue-it.net
+     -- eventconfig.cookieDomain = ".my-shop.com"; -- Optional, domain name where the Queue-it session cookie should be saved
+     eventconfig.cookieValidityMinute = 15; -- Optional, validity of the Queue-it session cookie. Default is 10 minutes.
+     eventconfig.extendCookieValidity = true; -- Optional, should the Queue-it session cookie validity time be extended each time the validation runs? Default is true.
+     -- eventconfig.culture = "en-US"; -- Optional, culture of the queue ticket layout in the format specified here: https:-- msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx Default is to use what is specified on Event
+     -- eventconfig.layoutName = "NameOfYourCustomLayout"; -- Optional, name of the queue ticket layout e.g. "Default layout by Queue-it". Default is to take what is specified on the Event
 
-  initRequiredHelpers(request_rec)
+     initRequiredHelpers(request_rec)
 
-  kuHandler = require("KnownUserApacheHandler")
+     kuHandler = require("KnownUserApacheHandler")
 	
-  return kuHandler.handleByLocalConfig(
-    "... INSERT CUSTOMER ID ...", 
-    "... INSERT SECRET KEY ...", 
-    eventconfig, 
-    request_rec)
+     return kuHandler.handleByLocalConfig(
+       "... INSERT CUSTOMER ID ...", 
+       "... INSERT SECRET KEY ...", 
+       eventconfig, 
+       request_rec)
+   )
+   
+   if (success) then
+     return result
+   else
+     -- There was an error validating the request
+     -- Use your own logging framework to log the error
+     -- This was a configuration error, so we let the user continue
+     return apache2.DECLINED
+   end
 end
 ```
