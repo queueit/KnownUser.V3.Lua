@@ -79,9 +79,13 @@ function handle(r)
         assert(intConfFile ~= nil, "config invalid")
 
         -- check if valid value
-        errorCode = tonumber(errorCode)
-        if (errorCode ~= nil) and (errorCode >= 100) and (errorCode < 600) then
-            errorResult = errorCode
+        if (errorCode ~= nil) then
+            errorCode = tonumber(errorCode)
+            if (errorCode == nil) then
+                r:warn(string.format("[%s] Value of QUEUEIT_ERROR_CODE is not a valid HTTP status code: %s", DEBUG_TAG, r.subprocess_env["QUEUEIT_ERROR_CODE"]))
+            elseif (errorCode >= 100) and (errorCode < 600) then
+                errorResult = errorCode
+            end
         end
         r:debug(string.format("[%s] Value of variable errorCode: %s", DEBUG_TAG, errorCode))
 
