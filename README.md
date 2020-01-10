@@ -163,3 +163,24 @@ function handle(request_rec)
    end
 end
 ```
+
+#### ApacheHandlerSimple
+A quick way to get started is to use the ready-made Apache httpd handler `ApacheHandlerSimple`.
+It ships with the SDK and allows for an easy setup without having to implement a custom Lua handler.
+All the configuration is done in Apache httpd configuration (for example in `httpd.conf` or `apache2.conf`).
+
+Download and store the integration configuration in `/var/www/lua/integration_config.json`.
+When the integration configuration changes, this file needs to be updated.
+
+Then, add the following lines to your Apache httpd configuration, filling in the placeholders denoted by braces (e.g. `{CUSTOMER_ID}`):
+```apache2
+LoadModule lua_module modules/mod_lua.so
+[...]
+SetEnv  QUEUEIT_CUSTOMER_ID     "{CUSTOMER_ID}"
+SetEnv  QUEUEIT_SECRET_KEY      "{SECRET_KEY}"
+SetEnv  QUEUEIT_INT_CONF_FILE   "{APP_FOLDER}/integration_config.json"
+LuaMapHandler  "{URI_PATTERN}"  "{APP_FOLDER}/Handlers/ApacheHandlerSimple.lua"
+LuaPackagePath "{APP_FOLDER}/SDK/?.lua"
+LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"
+LuaPackagePath "{APP_FOLDER}/Handlers/?.lua"
+```
