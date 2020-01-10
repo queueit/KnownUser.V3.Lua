@@ -172,6 +172,9 @@ All the configuration is done in Apache httpd configuration (for example in `htt
 Download and store the integration configuration in `/var/www/lua/integration_config.json`.
 When the integration configuration changes, this file needs to be updated.
 
+Note that setting a custom error response code using `QUEUEIT_ERROR_CODE` is optional.
+If no error code is set, the handler declines to act if an error occurs and the request is let through.
+
 Then, add the following lines to your Apache httpd configuration, filling in the placeholders denoted by braces (e.g. `{CUSTOMER_ID}`):
 ```apache2
 LoadModule lua_module modules/mod_lua.so
@@ -179,6 +182,7 @@ LoadModule lua_module modules/mod_lua.so
 SetEnv  QUEUEIT_CUSTOMER_ID     "{CUSTOMER_ID}"
 SetEnv  QUEUEIT_SECRET_KEY      "{SECRET_KEY}"
 SetEnv  QUEUEIT_INT_CONF_FILE   "{APP_FOLDER}/integration_config.json"
+SetEnv  QUEUEIT_ERROR_CODE      "400"
 LuaMapHandler  "{URI_PATTERN}"  "{APP_FOLDER}/Handlers/ApacheHandlerSimple.lua"
 LuaPackagePath "{APP_FOLDER}/SDK/?.lua"
 LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"

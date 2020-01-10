@@ -12,6 +12,8 @@
 --...   * QUEUEIT_CUSTOMER_ID: The Queue-it customer id
 --...   * QUEUEIT_SECRET_KEY: The Queue-it secret key to access the queue API
 --...   * QUEUEIT_INT_CONF_FILE: The local JSON file containing the integration configuration
+--      * QUEUEIT_ERROR_CODE: (optional) The response code to use instead of declining to act
+--                            if request handling fails
 --    Note that the integration configuration is read on every request. The JSON file containing
 --    The integration configuration should, for performance reasons, be available locally.
 --
@@ -22,6 +24,7 @@
 --      SetEnv  QUEUEIT_CUSTOMER_ID     "{CUSTOMER_ID}"
 --      SetEnv  QUEUEIT_SECRET_KEY      "{SECRET_KEY}"
 --      SetEnv  QUEUEIT_INT_CONF_FILE   "{APP_FOLDER}/integration_config.json"
+--      SetEnv  QUEUEIT_ERROR_CODE      "400"
 --      LuaMapHandler  "{URI_PATTERN}"  "{APP_FOLDER}/Handlers/ApacheHandlerSimple.lua"
 --      LuaPackagePath "{APP_FOLDER}/SDK/?.lua"
 --      LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"
@@ -56,6 +59,9 @@ end
 
 function handle(r)
 
+    -- default error behaviour
+    local errorResult = apache2.DECLINED
+
     -- catch errors if any occur
     local success, result = pcall(function()
 
@@ -63,12 +69,21 @@ function handle(r)
         local customerId = r.subprocess_env["QUEUEIT_CUSTOMER_ID"]
         local secretKey = r.subprocess_env["QUEUEIT_SECRET_KEY"]
         local intConfFile = r.subprocess_env["QUEUEIT_INT_CONF_FILE"]
+        local errorCode = r.subprocess_env["QUEUEIT_ERROR_CODE"]
         r:debug(string.format("[%s] Environment variable QUEUEIT_CUSTOMER_ID: %s", DEBUG_TAG, customerId))
         r:debug(string.format("[%s] Environment variable QUEUEIT_SECRET_KEY: %s", DEBUG_TAG, secretKey))
         r:debug(string.format("[%s] Environment variable QUEUEIT_INT_CONF_FILE: %s", DEBUG_TAG, intConfFile))
+        r:debug(string.format("[%s] Environment variable QUEUEIT_ERROR_CODE: %s", DEBUG_TAG, errorCode))
         assert(customerId ~= nil, "customerId invalid")
         assert(secretKey ~= nil, "secretKey invalid")
         assert(intConfFile ~= nil, "config invalid")
+
+        -- check if valid value
+        errorCode = tonumber(errorCode)
+        if (errorCode ~= nil) and (errorCode >= 100) and (errorCode < 600) then
+            errorResult = errorCode
+        end
+        r:debug(string.format("[%s] Value of variable errorCode: %s", DEBUG_TAG, errorCode))
 
         -- initialize helper functions
         initRequiredHelpers(r)
@@ -87,6 +102,6 @@ function handle(r)
         return result
     else
         r:err(string.format("[%s] Request handling not successful (denying access): error => %s", DEBUG_TAG, result))
-        return 400 -- Bad Request (something must be wrong with the request)
+        return errorResult
     end
 end
