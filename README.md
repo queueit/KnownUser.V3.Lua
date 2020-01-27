@@ -164,8 +164,8 @@ function handle(request_rec)
 end
 ```
 
-#### ApacheHandlerSimple
-A quick way to get started is to use the ready-made Apache httpd handler `ApacheHandlerSimple`.
+#### Quick start - using Apache config
+A quick way to get started is to use the ready-made Apache httpd handler ![ApacheHandlerUsingConfigFromFile](Examples/ApacheHandlerUsingConfigFromFile.lua).
 It ships with the SDK and allows for an easy setup without having to implement a custom Lua handler.
 All the configuration is done in Apache httpd configuration (for example in `httpd.conf` or `apache2.conf`).
 
