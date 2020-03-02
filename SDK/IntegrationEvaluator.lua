@@ -37,7 +37,6 @@ local model = {
 					if (utils.isTable(triggerPart) == false) then
 						return false
 					end
-				
 					if (evaluateTriggerPart(triggerPart, currentPageUrl, request)) then
 						return true
 					end
@@ -48,7 +47,6 @@ local model = {
 					if (utils.isTable(triggerPart) == false) then
 						return false
 					end
-
 					if (evaluateTriggerPart(triggerPart, currentPageUrl, request) == false) then
 						return false
 					end

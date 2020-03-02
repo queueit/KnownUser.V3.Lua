@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------------------------------------
--- ApacheHandlerSimple.lua
+-- ApacheHandlerUsingConfigFromFile.lua
 ----------------------------------------------------------------------------------------------------
--- HANDLER: ApacheHandlerSimple
+-- HANDLER: ApacheHandlerUsingConfigFromFile
 --
 -- DESCRIPTION:
 --    This Apache httpd Lua handler verifies that HTTP requests are allowed to be passed to the
@@ -14,6 +14,14 @@
 --...   * QUEUEIT_INT_CONF_FILE: The local JSON file containing the integration configuration
 --      * QUEUEIT_ERROR_CODE: (optional) The response code to use instead of declining to act
 --                            if request handling fails
+--      * QUEUEIT_COOKIE_OPTIONS_HTTPONLY: (optional) Set to true if you want cookies with httponly 
+--                            flag set. Only enable if this you use pure server-side integration 
+--                            e.g. not JS Hybrid
+--      * QUEUEIT_COOKIE_OPTIONS_SECURE: (optional) Set to true if you want cookies with secure 
+--                            flag set. Only enable if your website runs purely on https
+--      * QUEUEIT_COOKIE_OPTIONS_SAMESITE: (optional) Set to true if you want cookies with samesite 
+--                            flag set. Only use 'strict' if your queue protected site stays on 
+--                            same domain (no navigation to subdomains)
 --    Note that the integration configuration is read on every request. The JSON file containing
 --    The integration configuration should, for performance reasons, be available locally.
 --
@@ -25,7 +33,7 @@
 --      SetEnv  QUEUEIT_SECRET_KEY      "{SECRET_KEY}"
 --      SetEnv  QUEUEIT_INT_CONF_FILE   "{APP_FOLDER}/integration_config.json"
 --      SetEnv  QUEUEIT_ERROR_CODE      "400"
---      LuaMapHandler  "{URI_PATTERN}"  "{APP_FOLDER}/Handlers/ApacheHandlerSimple.lua"
+--      LuaMapHandler  "{URI_PATTERN}"  "{APP_FOLDER}/Handlers/ApacheHandlerUsingConfigFromFile.lua"
 --      LuaPackagePath "{APP_FOLDER}/SDK/?.lua"
 --      LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"
 --      LuaPackagePath "{APP_FOLDER}/Handlers/?.lua"
@@ -38,12 +46,12 @@
 ----------------------------------------------------------------------------------------------------
 
 
-local DEBUG_TAG = "ApacheHandlerHelperSimple.lua"
+local DEBUG_TAG = "ApacheHandlerUsingConfigFromFile.lua"
 
 local kuHandler = require("KnownUserApacheHandler")
 local file = require("file")
 
-local function initRequiredHelpers(r)
+local function initRequiredHelpers(r, cookieOptions)
     local iHelpers = require("KnownUserImplementationHelpers")
 
     iHelpers.request.getAbsoluteUri = function()
@@ -55,6 +63,8 @@ local function initRequiredHelpers(r)
         r:debug(string.format("[%s] Rebuilt request URL as: %s", DEBUG_TAG, fullUrl))
         return fullUrl
     end
+
+    iHelpers.response.cookieOptions = cookieOptions
 end
 
 function handle(r)
@@ -65,15 +75,26 @@ function handle(r)
     -- catch errors if any occur
     local success, result = pcall(function()
 
-        -- get configuration from environment variables
+        -- get configuration from environment variables        
         local customerId = r.subprocess_env["QUEUEIT_CUSTOMER_ID"]
         local secretKey = r.subprocess_env["QUEUEIT_SECRET_KEY"]
         local intConfFile = r.subprocess_env["QUEUEIT_INT_CONF_FILE"]
         local errorCode = r.subprocess_env["QUEUEIT_ERROR_CODE"]
+        local cookieOptions = 
+        {
+            httpOnly = r.subprocess_env["QUEUEIT_COOKIE_OPTIONS_HTTPONLY"],
+            secure = r.subprocess_env["QUEUEIT_COOKIE_OPTIONS_SECURE"],
+            sameSite = r.subprocess_env["QUEUEIT_COOKIE_OPTIONS_SAMESITE"]
+        }
+        
         r:debug(string.format("[%s] Environment variable QUEUEIT_CUSTOMER_ID: %s", DEBUG_TAG, customerId))
         r:debug(string.format("[%s] Environment variable QUEUEIT_SECRET_KEY: %s", DEBUG_TAG, secretKey))
         r:debug(string.format("[%s] Environment variable QUEUEIT_INT_CONF_FILE: %s", DEBUG_TAG, intConfFile))
         r:debug(string.format("[%s] Environment variable QUEUEIT_ERROR_CODE: %s", DEBUG_TAG, errorCode))
+        r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_HTTPONLY: %s", DEBUG_TAG, cookieOptions.httpOnly))
+        r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_SECURE: %s", DEBUG_TAG, cookieOptions.secure))
+        r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_SAMESITE: %s", DEBUG_TAG, cookieOptions.sameSite))
+        
         assert(customerId ~= nil, "customerId invalid")
         assert(secretKey ~= nil, "secretKey invalid")
         assert(intConfFile ~= nil, "config invalid")
@@ -90,7 +111,7 @@ function handle(r)
         r:debug(string.format("[%s] Value of variable errorCode: %s", DEBUG_TAG, errorCode))
 
         -- initialize helper functions
-        initRequiredHelpers(r)
+        initRequiredHelpers(r, cookieOptions)
 
         -- read integration configuration from file
         local intConfJson = file.readAll(intConfFile)

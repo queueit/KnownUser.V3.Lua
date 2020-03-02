@@ -15,14 +15,36 @@ end
 test_ExtractQueueParams()
 
 function test_ExtractQueueParams_NotValidToken()
-	queueITToken =  "ts_sasa~cv_adsasa~ce_falwwwse~q_944c1f44-60dd-4e37-aabc-f3e4bb1c8895"
+	queueITToken =  "ts_sasa~cv_adsasa~ce_falwwwse~q_944c1f44-60dd-4e37-aabc-f3e4bb1c8895~h_218b734e-d5be-4b60-ad66-9b1b326266e2"
+	queueitTokenWithoutHash = "ts_sasa~cv_adsasa~ce_falwwwse~q_944c1f44-60dd-4e37-aabc-f3e4bb1c8895"
 	result = qitHelpers.QueueUrlParams.extractQueueParams(queueITToken)
 	assert(result.eventId == "")
 	assert(result.timeStamp == 0)
 	assert(result.extendableCookie == false)
 	assert(result.queueITToken == queueITToken)
 	assert(result.cookieValidityMinutes == nil)
-	assert(result.hashCode == "")
-	assert(result.queueITTokenWithoutHash == "ts_sasa~cv_adsasa~ce_falwwwse~q_944c1f44-60dd-4e37-aabc-f3e4bb1c8895")
+	assert(result.queueId == "944c1f44-60dd-4e37-aabc-f3e4bb1c8895")
+	assert(result.hashCode == "218b734e-d5be-4b60-ad66-9b1b326266e2")
+	assert(result.queueITTokenWithoutHash == queueitTokenWithoutHash)
 end
 test_ExtractQueueParams_NotValidToken()
+
+function test_ExtractQueueParams_Using_QueueitToken_With_No_Values()
+	queueITToken =  "e~q~ts~ce~rt~h"
+	result = qitHelpers.QueueUrlParams.extractQueueParams(queueITToken)
+	assert(result.eventId == "")
+	assert(result.timeStamp == 0)
+	assert(result.extendableCookie == false)
+	assert(result.queueITToken == queueITToken)
+	assert(result.cookieValidityMinutes == nil)
+	assert(result.queueId == "")
+	assert(result.hashCode == "")
+	assert(result.queueITTokenWithoutHash == queueITToken)
+end
+test_ExtractQueueParams_Using_QueueitToken_With_No_Values()
+
+function test_TryExtractQueueParams_Using_Partial_QueueitToken_Expect_Null()
+	queueParameter = qitHelpers.QueueUrlParams.extractQueueParams("")
+	assert(queueParameter == nil)
+end
+test_TryExtractQueueParams_Using_Partial_QueueitToken_Expect_Null()

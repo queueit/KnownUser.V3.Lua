@@ -25,7 +25,7 @@ local utils =
 		if (str) then
 			str = string.gsub(str, "\n", "\r\n")
 			str = string.gsub(str, "([^%w %-%_%.%~])", function (c) return string.format ("%%%02X", string.byte(c)) end)
-			str = string.gsub(str, " ", "+")
+			str = string.gsub(str, " ", "%%20")
 		end
 		return str
 	end,
@@ -74,7 +74,18 @@ local utils =
 			return false
 		end
 		return type(o) == "table"
-	end
+	end,
+	isNilOrEmpty = function(s)
+		if(s == nil or string.len(s) == 0) then
+			return true
+		end
+		return false
+	end,
+	tableLength = function (t)
+		local count = 0
+		for _ in pairs(t) do count = count + 1 end
+		return count
+	  end
 }
 
 return utils

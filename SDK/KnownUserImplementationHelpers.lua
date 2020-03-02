@@ -27,6 +27,18 @@ local iHelpers =
 	},
 	response = 
 	{
+		cookieOptions = 
+		{
+			-- true if response cookies should have httponly flag set
+			-- only enable if you use pure server-side integration e.g. not JS Hybrid
+			httpOnly = false,
+			-- true if response cookies should have secure flag set
+			-- only enable if your website runs on https
+			secure = false,
+			-- set to any string value (none, strict, lax) if response cookies should have samesite flag set
+			-- only use 'strict' if your queue protected site stays on same domain (no navigation to subdomains)
+			sameSite = nil
+		},
 		-- returns: void
 		setCookie = function(name, value, expire, domain)
 			error("response.setCookie - not implemented")
@@ -44,6 +56,12 @@ local iHelpers =
 		-- returns: string
 		parse = function(jsonStr)
 			error("json.encode - not implemented")
+		end
+	},
+	system = 
+	{
+		getConnectorName = function()
+			return "unspecified"
 		end
 	}
 }

@@ -37,8 +37,8 @@ function test_jsonHelper_correctNullHandling()
 		}		
 	]]
 
-	jsonHelper = require("JsonHelper")
-	local cfg = jsonHelper.parse(integrationConfigJson)
+	local json = require("json")
+	local cfg = json.parse(integrationConfigJson)
 
 	for i, v in pairs(cfg.Integrations) do 
 		assert( "should be a valid string -> " .. v.LayoutName ) -- this should not raise exception	

@@ -16,16 +16,6 @@ function ComparisonOperatorHelperTest_evaluate()
 	assert( comparisonOperatorHelper.evaluate("Contains",true, false, "test_test1", "test1",nil) == false )
 	assert( comparisonOperatorHelper.evaluate("Contains",false, false, "test_dsdsdsdtest1", "*",nil) )
 
-    assert( comparisonOperatorHelper.evaluate("StartsWith", false, false, "test1_test1_test", "test1",nil) )
-    assert( comparisonOperatorHelper.evaluate("StartsWith",false, false, "test1_test1_test", "Test1",nil) == false )
-    assert( comparisonOperatorHelper.evaluate("StartsWith", false, true, "test1_test1_test", "Test1",nil) )
-    assert( comparisonOperatorHelper.evaluate("StartsWith", true, true, "test1_test1_test", "Test1",nil) == false )
-
-    assert( comparisonOperatorHelper.evaluate("EndsWith",false, false, "test1_test1_testshop", "shop",nil) )
-    assert( comparisonOperatorHelper.evaluate("EndsWith",false, false, "test1_test1_testshop2", "shop",nil) == false )
-    assert( comparisonOperatorHelper.evaluate("EndsWith", false, true, "test1_test1_testshop", "Shop",nil) )
-    assert( comparisonOperatorHelper.evaluate("EndsWith", true, true, "test1_test1_testshop", "Shop",nil) == false )
-    
     assert( comparisonOperatorHelper.evaluate("EqualsAny",false, false, "test1", nil, {"test1"}) )
     assert( comparisonOperatorHelper.evaluate("EqualsAny",false, false, "test1", nil,{"Test1"}) == false )
     assert( comparisonOperatorHelper.evaluate("EqualsAny",false, true, "test1", nil,{"Test1"}) )

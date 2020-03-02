@@ -17,12 +17,20 @@ userInQueueStateCookieRepositoryMock.store = function(eventId, queueId, fixedCoo
 	userInQueueStateCookieRepositoryMock.storeCall = { eventId=eventId, queueId=queueId, fixedCookieValidityMinutes=fixedCookieValidityMinutes, cookieDomain=cookieDomain, redirectType=redirectType, secretKey=secretKey} 	
 end
 
+userInQueueStateCookieRepositoryMock.cancelQueueCookie = function(eventId, cookieDomain)
+	userInQueueStateCookieRepositoryMock.cancelQueueCookieCall = { eventId=eventId, cookieDomain=cookieDomain} 	
+end
+
 userInQueueStateCookieRepositoryMock.reset = function()
 	userInQueueStateCookieRepositoryMock.getStateCall = {}
-	userInQueueStateCookieRepositoryMock.storeCall = {}
+    userInQueueStateCookieRepositoryMock.storeCall = {}
+    userInQueueStateCookieRepositoryMock.cancelQueueCookieCall = {}
 end
 
 iHelpers.response.setCookie = function(name, value, expire, domain)	
+end
+iHelpers.system.getConnectorName = function()
+    return "mock-connector"
 end
 -- END Mocks
 
@@ -48,7 +56,8 @@ function UserInQueueServiceTest()
 		eventConfig.queueDomain = "testDomain"
 		eventConfig.cookieDomain = "testDomain"
 		eventConfig.cookieValidityMinute = 10
-		eventConfig.extendCookieValidity = false
+        eventConfig.extendCookieValidity = false
+        eventConfig.actionName = "QueueAction"
 		        		
 		local result = userInQueueService.validateQueueRequest("url", "token", eventConfig, "customerid", "key")
                 
@@ -59,7 +68,9 @@ function UserInQueueServiceTest()
 		assert( userInQueueStateCookieRepositoryMock.getStateCall.eventId == "e1" )
 		assert( userInQueueStateCookieRepositoryMock.getStateCall.cookieValidityMinutes == 10 )
 		assert( userInQueueStateCookieRepositoryMock.getStateCall.secretKey == "key" )
-		assert( userInQueueStateCookieRepositoryMock.getStateCall.validateTime == true )
+        assert( userInQueueStateCookieRepositoryMock.getStateCall.validateTime == true )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) == nil )
+        assert( result.actionName == eventConfig.actionName )
     end
 	test_validateQueueRequest_ValidState_ExtendableCookie_NoCookieExtensionFromConfig_DoNotRedirectDoNotStoreCookieWithExtension()
 
@@ -73,6 +84,7 @@ function UserInQueueServiceTest()
         eventConfig.cookieDomain = "testDomain"
         eventConfig.cookieValidityMinute = 10
         eventConfig.extendCookieValidity = true
+        eventConfig.actionName = "QueueAction"
         
 		local result = userInQueueService.validateQueueRequest("url", "token", eventConfig, "customerid", "key")
         
@@ -86,7 +98,9 @@ function UserInQueueServiceTest()
 		assert( userInQueueStateCookieRepositoryMock.storeCall.fixedCookieValidityMinutes == nil )
 		assert( userInQueueStateCookieRepositoryMock.storeCall.cookieDomain == "testDomain" )
 		assert( userInQueueStateCookieRepositoryMock.storeCall.redirectType == "disabled" )
-		assert( userInQueueStateCookieRepositoryMock.storeCall.secretKey == "key" )
+        assert( userInQueueStateCookieRepositoryMock.storeCall.secretKey == "key" )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) == nil )
+        assert( result.actionName == eventConfig.actionName )
     end
 	test_validateQueueRequest_ValidState_ExtendableCookie_CookieExtensionFromConfig_DoNotRedirectDoStoreCookieWithExtension()
 	
@@ -99,14 +113,16 @@ function UserInQueueServiceTest()
         eventConfig.queueDomain = "testDomain"
         eventConfig.cookieValidityMinute = 10
         eventConfig.extendCookieValidity = true
+        eventConfig.actionName = "QueueAction"
 	    	
         local result = userInQueueService.validateQueueRequest("url", "token", eventConfig, "customerid", "key")
         
 		assert( result:doRedirect() == false )
         assert( result.eventId == 'e1' )
         assert( result.queueId == "queueId" )		
-		
-		assert( next(userInQueueStateCookieRepositoryMock.storeCall) == nil )
+		assert( result.actionName == eventConfig.actionName )
+        assert( next(userInQueueStateCookieRepositoryMock.storeCall) == nil )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) == nil )
     end
 	test_validateQueueRequest_ValidState_NoExtendableCookie_DoNotRedirectDoNotStoreCookieWithExtension()
 	
@@ -121,14 +137,17 @@ function UserInQueueServiceTest()
         eventConfig.cookieValidityMinute = 10
         eventConfig.extendCookieValidity = true
         eventConfig.version = 11
+        eventConfig.actionName = "QueueAction"
         local url = "http://test.test.com?b=h"
 		
         local token = generateHash('e1','queueId', os.time() + (3 * 60), 'False', nil, 'idle', key)
 		token = token:gsub("False", "True")
 
         local expectedErrorUrl = "https://testDomain.com/error/hash/?c=testCustomer&e=e1" 
-				.. "&ver=v3-lua-" .. userInQueueService.SDK_VERSION
+                .. "&ver=" .. userInQueueService.SDK_VERSION
+                .. "&kupver=mock-connector"
                 .. "&cver=11"
+                .. "&man=" .. eventConfig.actionName
                 .. "&queueittoken=" .. token
                 .. "&t=" .. utils.urlEncode(url)
 
@@ -142,7 +161,8 @@ function UserInQueueServiceTest()
         local timestamp = tsPart:gsub("&ts=", "")
 		assert( os.time() - timestamp < 100 )
 		local urlWithoutTimeStamp = result.redirectUrl:gsub(tsPart, "")
-		assert( urlWithoutTimeStamp == expectedErrorUrl )		
+        assert( urlWithoutTimeStamp == expectedErrorUrl )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )		
     end
 	test_validateQueueRequest_NoCookie_TampredToken_RedirectToErrorPageWithHashError_DoNotStoreCookie()
 
@@ -157,13 +177,16 @@ function UserInQueueServiceTest()
         eventConfig.cookieValidityMinute = 10
         eventConfig.extendCookieValidity = false
         eventConfig.version = 11
+        eventConfig.actionName = "QueueAction"
         local url = "http://test.test.com?b=h"
         
 		local token = generateHash('e1','queueId', os.time() - (3 * 60), 'False', nil, 'queue', key)
 	
 		local expectedErrorUrl = "https://testDomain.com/error/timestamp/?c=testCustomer&e=e1" 
-				.. "&ver=v3-lua-" .. userInQueueService.SDK_VERSION
+                .. "&ver=" .. userInQueueService.SDK_VERSION
+                .. "&kupver=mock-connector"
                 .. "&cver=11"
+                .. "&man=" .. eventConfig.actionName
                 .. "&queueittoken=" .. token
                 .. "&t=" .. utils.urlEncode(url)
 
@@ -177,7 +200,8 @@ function UserInQueueServiceTest()
         local timestamp = tsPart:gsub("&ts=", "")
 		assert( os.time() - timestamp < 100 )
 		local urlWithoutTimeStamp = result.redirectUrl:gsub(tsPart, "")
-		assert( urlWithoutTimeStamp == expectedErrorUrl )
+        assert( urlWithoutTimeStamp == expectedErrorUrl )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )
     end
 	test_validateQueueRequest_NoCookie_ExpiredTimeStampInToken_RedirectToErrorPageWithTimeStampError_DoNotStoreCookie()
 	
@@ -192,13 +216,16 @@ function UserInQueueServiceTest()
         eventConfig.cookieValidityMinute = 10
         eventConfig.extendCookieValidity = true
         eventConfig.version = 11
+        eventConfig.actionName = "QueueAction"
         local url = "http://test.test.com?b=h"
         		
 		local token = generateHash('e1', 'queueId', os.time() - (3 * 60), 'False', nil, 'queue', key)
 	
 		local expectedErrorUrl = "https://testDomain.com/error/eventid/?c=testCustomer&e=e2" 
-				.. "&ver=v3-lua-" .. userInQueueService.SDK_VERSION
+                .. "&ver=" .. userInQueueService.SDK_VERSION
+                .. "&kupver=mock-connector"
                 .. "&cver=11"
+                .. "&man=" .. eventConfig.actionName
                 .. "&queueittoken=" .. token
                 .. "&t=" .. utils.urlEncode(url)
         
@@ -212,7 +239,8 @@ function UserInQueueServiceTest()
         local timestamp = tsPart:gsub("&ts=", "")
 		assert( os.time() - timestamp < 100 )
 		local urlWithoutTimeStamp = result.redirectUrl:gsub(tsPart, "")
-		assert( urlWithoutTimeStamp == expectedErrorUrl )
+        assert( urlWithoutTimeStamp == expectedErrorUrl )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )
     end
 	test_validateQueueRequest_NoCookie_EventIdMismatch_RedirectToErrorPageWithEventIdMissMatchError_DoNotStoreCookie()
 	
@@ -228,6 +256,8 @@ function UserInQueueServiceTest()
         eventConfig.cookieDomain = "testDomain"	
         eventConfig.extendCookieValidity = true	
         eventConfig.version = 11
+        eventConfig.actionName = "QueueAction"
+
         local url = "http://test.test.com?b=h"
                
         local token = generateHash('e1', 'queueId', os.time() + (3 * 60), 'true', nil, 'queue', key)
@@ -237,14 +267,15 @@ function UserInQueueServiceTest()
         assert( result.eventId == 'e1' )
         assert( result.queueId == 'queueId' )
 		assert( result.redirectType == 'queue' )
-
+        assert( result.actionName == eventConfig.actionName )
 		assert( next(userInQueueStateCookieRepositoryMock.storeCall) ~= nil )
 		assert( userInQueueStateCookieRepositoryMock.storeCall.eventId == "e1" )
 		assert( userInQueueStateCookieRepositoryMock.storeCall.queueId == "queueId" )
 		assert( userInQueueStateCookieRepositoryMock.storeCall.fixedCookieValidityMinutes == nil )
 		assert( userInQueueStateCookieRepositoryMock.storeCall.cookieDomain == "testDomain" )
 		assert( userInQueueStateCookieRepositoryMock.storeCall.redirectType == "queue" )
-		assert( userInQueueStateCookieRepositoryMock.storeCall.secretKey == key )
+        assert( userInQueueStateCookieRepositoryMock.storeCall.secretKey == key )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) == nil )
     end
 	test_validateQueueRequest_NoCookie_ValidToken_ExtendableCookie_DoNotRedirect_StoreExtendableCookie()
 
@@ -260,6 +291,7 @@ function UserInQueueServiceTest()
         eventConfig.cookieDomain = "testDomain"	
         eventConfig.extendCookieValidity = true	
         eventConfig.version = 11
+        eventConfig.actionName = "QueueAction"
         local url = "http://test.test.com?b=h"
 
         local token = generateHash('e1', 'queueId', os.time() + (3 * 60), 'false', 3, 'DirectLink', key)
@@ -268,7 +300,8 @@ function UserInQueueServiceTest()
         assert( result:doRedirect() == false )
         assert( result.eventId == 'e1' )
         assert( result.queueId == 'queueId' )
-		assert( result.redirectType == 'DirectLink' )
+        assert( result.redirectType == 'DirectLink' )
+        assert( result.actionName == eventConfig.actionName )
 
 		assert( next(userInQueueStateCookieRepositoryMock.storeCall) ~= nil )
 		assert( userInQueueStateCookieRepositoryMock.storeCall.eventId == "e1" )
@@ -276,7 +309,8 @@ function UserInQueueServiceTest()
 		assert( userInQueueStateCookieRepositoryMock.storeCall.fixedCookieValidityMinutes == 3 )
 		assert( userInQueueStateCookieRepositoryMock.storeCall.cookieDomain == "testDomain" )
 		assert( userInQueueStateCookieRepositoryMock.storeCall.redirectType == "DirectLink" )
-		assert( userInQueueStateCookieRepositoryMock.storeCall.secretKey == key )
+        assert( userInQueueStateCookieRepositoryMock.storeCall.secretKey == key )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) == nil )
     end
 	test_validateQueueRequest_NoCookie_ValidToken_CookieValidityMinuteFromToken_DoNotRedirect_StoreNonExtendableCookie()
 
@@ -293,13 +327,16 @@ function UserInQueueServiceTest()
         eventConfig.version = 11
         eventConfig.culture = 'en-US'
         eventConfig.layoutName = 'testlayout'
+        eventConfig.actionName = "Queue Action (._~-) !*|'\""
         local url = "http://test.test.com?b=h"
 	        
         local token = ""
 	
         local expectedRedirectUrl = "https://testDomain.com/?c=testCustomer&e=e1" 
-				.. "&ver=v3-lua-" .. userInQueueService.SDK_VERSION
+                .. "&ver=" .. userInQueueService.SDK_VERSION
+                .. "&kupver=mock-connector"
                 .. "&cver=11"
+                .. "&man=Queue%20Action%20%28._~-%29%20%21%2A%7C%27%22"
                 .. "&cid=en-US"
                 .. "&l=testlayout"
                 .. "&t=" .. utils.urlEncode(url)
@@ -310,7 +347,8 @@ function UserInQueueServiceTest()
         assert( result:doRedirect() )
         assert( result.eventId == 'e1' )
         assert( result.queueId == nil )
-		assert( result.redirectUrl == expectedRedirectUrl )
+        assert( result.redirectUrl == expectedRedirectUrl )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )
     end
 	test_NoCookie_NoValidToken_WithoutToken_RedirectToQueue()
 
@@ -326,14 +364,17 @@ function UserInQueueServiceTest()
         eventConfig.extendCookieValidity = false
         eventConfig.version = 10
         eventConfig.culture = null
-        eventConfig.layoutName = 'testlayout'	
+        eventConfig.layoutName = 'testlayout'
+        eventConfig.actionName = "QueueAction"	
         local url = "http://test.test.com?b=h"   
         
 		local token = ""
 	
         local expectedRedirectUrl = "https://testDomain.com/?c=testCustomer&e=e1"
-                .. "&ver=v3-lua-" .. userInQueueService.SDK_VERSION
+                .. "&ver=" .. userInQueueService.SDK_VERSION
+                .. "&kupver=mock-connector"
                 .. "&cver=10"
+                .. "&man=" .. eventConfig.actionName
                 .. "&l=testlayout"	
         
         local result = userInQueueService.validateQueueRequest(null, token, eventConfig, "testCustomer", key)
@@ -342,7 +383,8 @@ function UserInQueueServiceTest()
         assert( result:doRedirect() )
         assert( result.eventId == 'e1' )
         assert( result.queueId == nil )
-		assert( result.redirectUrl == expectedRedirectUrl )
+        assert( result.redirectUrl == expectedRedirectUrl )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )
 	end
 	test_ValidateRequest_NoCookie_WithoutToken_RedirectToQueue_NotargetUrl()
 
@@ -359,6 +401,7 @@ function UserInQueueServiceTest()
         eventConfig.version = 11
         eventConfig.culture = 'en-US'
         eventConfig.layoutName = 'testlayout'
+        eventConfig.actionName = "QueueAction"
         local url = "http://test.test.com?b=h"
 		        
         local token = ""
@@ -369,7 +412,9 @@ function UserInQueueServiceTest()
         assert( result:doRedirect() )
         assert( result.eventId == 'e1' )
         assert( result.queueId == nil )
-		assert( utils.startsWith(result.redirectUrl, "https://testDomain.com/error/hash/?c=testCustomer&e=e1") )
+        assert( result.actionName == eventConfig.actionName )
+        assert( utils.startsWith(result.redirectUrl, "https://testDomain.com/error/hash/?c=testCustomer&e=e1") )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )
     end
 	test_validateQueueRequest_NoCookie_InValidToken()
 
@@ -382,14 +427,17 @@ function UserInQueueServiceTest()
         eventConfig.eventId = "e1"
         eventConfig.queueDomain = "testDomain.com"
         eventConfig.cookieDomain = "testdomain"
-        eventConfig.version = 10      
+        eventConfig.version = 10
+        eventConfig.actionName = "CancelAction"      
         local url = "http://test.test.com?b=h"
         
 		local token = ""
 	        
         local expectedUrl = "https://testDomain.com/cancel/testCustomer/e1/?c=testCustomer&e=e1"
-			.. "&ver=v3-lua-" .. userInQueueService.SDK_VERSION
-			.. "&cver=10&r=" .. utils.urlEncode(url)
+            .. "&ver=" .. userInQueueService.SDK_VERSION
+            .. "&kupver=mock-connector"
+            .. "&cver=10&man=" .. eventConfig.actionName 
+            .. "&r=" .. utils.urlEncode(url)
         
 		local result = userInQueueService.validateCancelRequest(url, eventConfig, "testCustomer", key)
 		
@@ -397,19 +445,22 @@ function UserInQueueServiceTest()
 		assert( result:doRedirect() )
         assert( result.eventId == 'e1' )
         assert( result.queueId == "queueid" )
-		assert( result.redirectUrl == expectedUrl )        
+        assert( result.actionName == eventConfig.actionName )
+        assert( result.redirectUrl == expectedUrl )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )        
     end
 	test_validateCancelRequest()
 
 	local function test_getIgnoreActionResult()
         userInQueueStateCookieRepositoryMock.reset()
-        local result = userInQueueService.getIgnoreActionResult()
+        local result = userInQueueService.getIgnoreActionResult("IgnoreAction")
 	
         assert( result:doRedirect() == false )
         assert( result.eventId == nil )
         assert( result.queueId == nil )
         assert( result.redirectUrl == nil )
-        assert( result.actionType == "Ignore" )        
+        assert( result.actionType == "Ignore" ) 
+        assert( result.actionName == "IgnoreAction" )       
     end
 	test_getIgnoreActionResult()	
 end

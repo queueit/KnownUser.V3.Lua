@@ -4,7 +4,7 @@ local model = {
 	evaluate = function(opt, isNegative, isIgnoreCase, value, valueToCompare, valuesToCompare)
 		-- Private functions
 		local function contains(value, valueToCompare, isNegative, ignoreCase)
-			if (valueToCompare == "*") then
+			if (valueToCompare == "*" and (not utils.isNilOrEmpty(value))) then
 				return true
 			end
 
@@ -55,37 +55,6 @@ local model = {
         
 			return isNegative
 		end
-
-		local function endsWith(value, valueToCompare, isNegative, ignoreCase) 
-			if (ignoreCase) then
-				value = string.upper(value)
-				valueToCompare = string.upper(valueToCompare)
-			end
-
-			local evaluation = utils.endsWith(value, valueToCompare)
-
-			if (isNegative) then
-				return not evaluation
-			else
-				return evaluation
-			end
-		end
-
-		local function startsWith(value, valueToCompare, isNegative, ignoreCase)
-			if (ignoreCase) then
-				value = string.upper(value)
-				valueToCompare = string.upper(valueToCompare)
-			end
-
-			local evaluation = utils.startsWith(value, valueToCompare)
-
-			if (isNegative) then
-				return not evaluation
-			else
-				return evaluation
-			end
-		end	
-
 		if (value == nil) then 
 			value = "" 
 		end
@@ -101,12 +70,6 @@ local model = {
 		end
 		if (opt == "Contains") then
 			return contains(value, valueToCompare, isNegative, isIgnoreCase)		
-		end
-		if (opt == "StartsWith") then
-			return startsWith(value, valueToCompare, isNegative, isIgnoreCase)
-		end
-		if (opt == "EndsWith") then
-			return endsWith(value, valueToCompare, isNegative, isIgnoreCase)
 		end
 		if (opt == "EqualsAny") then
 			return equalsAny(value, valuesToCompare, isNegative, isIgnoreCase)

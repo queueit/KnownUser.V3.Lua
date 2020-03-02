@@ -25,20 +25,6 @@ function UrlValidatorHelperTest_evaluate()
 	triggerPart["ValueToCompare"] = "%http://test.tesdomain.com:8080/test/resource.lua?queue-event1-nodomain?q=%().+-*?[]^$"
 	assert( validatorHelpers.UrlValidatorHelper.evaluate(triggerPart, "%http://test.tesdomain.com:8080/test/resource.lua?queue-event1-nodomain?q=%().+-*?[]^$") )
 
-	triggerPart["UrlPart"] = "PageUrl"
-	triggerPart["Operator"] = "EndsWith"
-	triggerPart["IsIgnoreCase"] = true
-	triggerPart["IsNegative"] = false
-	triggerPart["ValueToCompare"] = ":8080/test/resource?queue-event1-nodomain#?q=%().+-*?[]^$"
-	assert( validatorHelpers.UrlValidatorHelper.evaluate(triggerPart, "%http://test.tesdomain.com:8080/test/resource?queue-event1-nodomain#?q=%().+-*?[]^$") )
-	
-	triggerPart["UrlPart"] = "PageUrl"
-	triggerPart["Operator"] = "StartsWith"
-	triggerPart["IsIgnoreCase"] = true
-	triggerPart["IsNegative"] = false
-	triggerPart["ValueToCompare"] = "%().+-*?[]^$"
-	assert( validatorHelpers.UrlValidatorHelper.evaluate(triggerPart, "%().+-*?[]^$http://test.tesdomain.com:8080/test/resource?queue-event1-nodomain") )
-
 	triggerPart["ValueToCompare"] = "/Test/t1"
 	triggerPart["UrlPart"] = "PagePath"
 	triggerPart["Operator"]= "Equals"

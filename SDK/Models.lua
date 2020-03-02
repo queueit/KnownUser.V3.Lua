@@ -12,6 +12,7 @@ local models = {
 				cookieValidityMinute,
 				cookieDomain,
 				version,
+				actionName = "unspecified",
 				getString = function(self)
 					return
 						"EventId:" .. utils.toString(self.eventId) .. 
@@ -21,7 +22,8 @@ local models = {
 						"&ExtendCookieValidity:" .. utils.toString(self.extendCookieValidity) .. 
 						"&CookieValidityMinute:" .. utils.toString(self.cookieValidityMinute) .. 
 						"&LayoutName:" .. utils.toString(self.layoutName) .. 
-						"&Culture:" .. utils.toString(self.culture)
+						"&Culture:" .. utils.toString(self.culture) ..
+						"&ActionName:" .. utils.toString(self.actionName)
 				end
 			}
 	
@@ -35,12 +37,14 @@ local models = {
 				queueDomain,
 				cookieDomain,
 				version,
+				actionName = "unspecified",
 				getString = function(self)
 					return
 						"EventId:" .. utils.toString(self.eventId) .. 
 						"&Version:" .. utils.toString(self.version) .. 
 						"&QueueDomain:" .. utils.toString(self.queueDomain) ..
-						"&CookieDomain:" .. utils.toString(self.cookieDomain)
+						"&CookieDomain:" .. utils.toString(self.cookieDomain) ..
+						"&ActionName:" .. utils.toString(self.actionName)
 				end
 			}
 	
@@ -48,7 +52,7 @@ local models = {
 		end
 	},
 	RequestValidationResult = {
-		create = function(actionType, eventId, queueId, redirectUrl, redirectType)
+		create = function(actionType, eventId, queueId, redirectUrl, redirectType, actionName)
 			local model = {
 				eventId = eventId,
 				redirectUrl = redirectUrl,
@@ -56,6 +60,7 @@ local models = {
 				actionType = actionType,
 				redirectType = redirectType,
 				isAjaxResult,
+				actionName = actionName,
 				doRedirect = function(self)
 					return utils.toString(self.redirectUrl) ~= ''
 				end,

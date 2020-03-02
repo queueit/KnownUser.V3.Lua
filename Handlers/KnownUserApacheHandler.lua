@@ -13,12 +13,16 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 	
 	-- Implement required helpers
 	-- ********************************************************************************		
+	iHelpers.system.getConnectorName = function()
+		return apache2.version
+	end
+
 	iHelpers.json.parse = function(jsonStr)
 		local json = require("json")
 		return json.parse(jsonStr)
 	end
 	
-	iHelpers.hash.hmac_sha256_encode = function(message, key)		
+	iHelpers.hash.hmac_sha256_encode = function(message, key)
 		local sha2 = require("sha2")
         return sha2.hmac(sha2.sha256, key, message)
 	end
@@ -65,7 +69,7 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 				startIndex, endIndex = string.find(v, name)
 				
 				if(endIndex ~= nil) then
-					return v:sub(endIndex + 1)		
+					return v:sub(endIndex + 1)
 				end
 			end
 		end
@@ -87,6 +91,10 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 	-- because we want to support Apache version < 2.4.12
 	-- where there is bug in that specific method
 	iHelpers.response.setCookie = function(name, value, expire, domain)
+		-- lua_mod only supports 1 Set-Cookie header (because 'err_headers_out' is a table).
+		-- So calling this method (setCookie) multiple times will not work as expected.
+		-- In this case final call will apply.
+
 		if (domain == nil) then
 			domain = ""
 		end
@@ -101,10 +109,13 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 		if expire ~= nil and type(expire) == "number" and expire > 0 then
 			expire_text = '; Expires=' .. os.date("!%a, %d %b %Y %H:%M:%S GMT", expire)
 		end
-		
+
 		request_rec.err_headers_out["Set-Cookie"] = name .. '=' .. value 
 			.. expire_text
 			.. (domain ~= "" and '; Domain=' .. domain or '') 
+			.. (iHelpers.response.cookieOptions.httpOnly and '; HttpOnly' or '')
+			.. (iHelpers.response.cookieOptions.secure and '; Secure' or '')
+			.. (iHelpers.response.cookieOptions.sameSite and '; SameSite=' .. iHelpers.response.cookieOptions.sameSite or '')
 			.. '; Path=/;'
 			
 	end
@@ -119,8 +130,8 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 
 	local queueitToken = request_rec:parseargs()["queueittoken"]
 	local fullUrl = iHelpers.request.getAbsoluteUri()
-	local currentUrlWithoutQueueitToken = fullUrl:gsub("([\\%?%&])(" .. knownUser.QUEUEIT_TOKEN_KEY .. "=[^&]*)", "")
-	
+	local currentUrlWithoutQueueitToken = fullUrl:gsub("([\\%?%&])(" .. knownUser.QUEUEIT_TOKEN_KEY .. "=[^&]*)", "")	
+
 	local validationResult = nil
 	if (isIntegrationConfig) then
 		validationResult = knownUser.validateRequestByIntegrationConfig(currentUrlWithoutQueueitToken, queueitToken, config, customerId, secretKey)
@@ -130,10 +141,10 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 		
 	if (validationResult:doRedirect()) then
 		if (validationResult.isAjaxResult) then
-			request_rec.err_headers_out[validationResult.getAjaxQueueRedirectHeaderKey()] = validationResult:getAjaxRedirectUrl()            
+			request_rec.err_headers_out[validationResult.getAjaxQueueRedirectHeaderKey()] = validationResult:getAjaxRedirectUrl()
 		else					
-			request_rec.err_headers_out["Location"] = validationResult.redirectUrl			
-			return apache2.HTTP_MOVED_TEMPORARILY			
+			request_rec.err_headers_out["Location"] = validationResult.redirectUrl
+			return apache2.HTTP_MOVED_TEMPORARILY
 		end
 	else
 		-- Request can continue - we remove queueittoken form querystring parameter to avoid sharing of user specific token
