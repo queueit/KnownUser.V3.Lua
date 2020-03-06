@@ -14,14 +14,14 @@
 --...   * QUEUEIT_INT_CONF_FILE: The local JSON file containing the integration configuration
 --      * QUEUEIT_ERROR_CODE: (optional) The response code to use instead of declining to act
 --                            if request handling fails
---      * QUEUEIT_COOKIE_OPTIONS_HTTPONLY: (optional) Set to true if you want cookies with httponly 
+--      * QUEUEIT_COOKIE_OPTIONS_HTTPONLY: (optional) Set to "true" if you want cookies with httponly 
 --                            flag set. Only enable if this you use pure server-side integration 
---                            e.g. not JS Hybrid
---      * QUEUEIT_COOKIE_OPTIONS_SECURE: (optional) Set to true if you want cookies with secure 
---                            flag set. Only enable if your website runs purely on https
---      * QUEUEIT_COOKIE_OPTIONS_SAMESITE: (optional) Set to true if you want cookies with samesite 
---                            flag set. Only use 'strict' if your queue protected site stays on 
---                            same domain (no navigation to subdomains)
+--                            e.g. not JS Hybrid.
+--      * QUEUEIT_COOKIE_OPTIONS_SECURE: (optional) Set to "true" if you want cookies with secure 
+--                            flag set. Only enable if your website runs purely on https.
+--      * QUEUEIT_COOKIE_OPTIONS_SAMESITE: (optional) set to any of these values 
+--                            "none", "strict" or "lax" if response cookies should have samesite flag set.
+--                            only use 'strict' if your queue protected site stays on same domain (no navigation to subdomains).
 --    Note that the integration configuration is read on every request. The JSON file containing
 --    The integration configuration should, for performance reasons, be available locally.
 --
@@ -29,10 +29,13 @@
 --    Add the following configuration to httpd.conf (or apache2.conf):
 --      LoadModule lua_module modules/mod_lua.so
 --      [...]
---      SetEnv  QUEUEIT_CUSTOMER_ID     "{CUSTOMER_ID}"
---      SetEnv  QUEUEIT_SECRET_KEY      "{SECRET_KEY}"
---      SetEnv  QUEUEIT_INT_CONF_FILE   "{APP_FOLDER}/integration_config.json"
---      SetEnv  QUEUEIT_ERROR_CODE      "400"
+--      SetEnv  QUEUEIT_CUSTOMER_ID                 "{CUSTOMER_ID}"
+--      SetEnv  QUEUEIT_SECRET_KEY                  "{SECRET_KEY}"
+--      SetEnv  QUEUEIT_INT_CONF_FILE               "{APP_FOLDER}/integration_config.json"
+--      SetEnv  QUEUEIT_ERROR_CODE                  "400"
+--      SetEnv  QUEUEIT_COOKIE_OPTIONS_HTTPONLY     "false"
+--      SetEnv  QUEUEIT_COOKIE_OPTIONS_SECURE       "false"
+--      SetEnv  QUEUEIT_COOKIE_OPTIONS_SAMESITE     "none"
 --      LuaMapHandler  "{URI_PATTERN}"  "{APP_FOLDER}/Handlers/ApacheHandlerUsingConfigFromFile.lua"
 --      LuaPackagePath "{APP_FOLDER}/SDK/?.lua"
 --      LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"
@@ -79,21 +82,18 @@ function handle(r)
         local customerId = r.subprocess_env["QUEUEIT_CUSTOMER_ID"]
         local secretKey = r.subprocess_env["QUEUEIT_SECRET_KEY"]
         local intConfFile = r.subprocess_env["QUEUEIT_INT_CONF_FILE"]
-        local errorCode = r.subprocess_env["QUEUEIT_ERROR_CODE"]
-        local cookieOptions = 
-        {
-            httpOnly = r.subprocess_env["QUEUEIT_COOKIE_OPTIONS_HTTPONLY"],
-            secure = r.subprocess_env["QUEUEIT_COOKIE_OPTIONS_SECURE"],
-            sameSite = r.subprocess_env["QUEUEIT_COOKIE_OPTIONS_SAMESITE"]
-        }
-        
+        local errorCode = r.subprocess_env["QUEUEIT_ERROR_CODE"]        
+        local co_httpOnly = r.subprocess_env["QUEUEIT_COOKIE_OPTIONS_HTTPONLY"]
+        local co_secure = r.subprocess_env["QUEUEIT_COOKIE_OPTIONS_SECURE"]
+        local co_sameSite = r.subprocess_env["QUEUEIT_COOKIE_OPTIONS_SAMESITE"]
+                
         r:debug(string.format("[%s] Environment variable QUEUEIT_CUSTOMER_ID: %s", DEBUG_TAG, customerId))
         r:debug(string.format("[%s] Environment variable QUEUEIT_SECRET_KEY: %s", DEBUG_TAG, secretKey))
         r:debug(string.format("[%s] Environment variable QUEUEIT_INT_CONF_FILE: %s", DEBUG_TAG, intConfFile))
         r:debug(string.format("[%s] Environment variable QUEUEIT_ERROR_CODE: %s", DEBUG_TAG, errorCode))
-        r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_HTTPONLY: %s", DEBUG_TAG, cookieOptions.httpOnly))
-        r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_SECURE: %s", DEBUG_TAG, cookieOptions.secure))
-        r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_SAMESITE: %s", DEBUG_TAG, cookieOptions.sameSite))
+        r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_HTTPONLY: %s", DEBUG_TAG, co_httpOnly))
+        r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_SECURE: %s", DEBUG_TAG, co_secure))
+        r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_SAMESITE: %s", DEBUG_TAG, co_sameSite))
         
         assert(customerId ~= nil, "customerId invalid")
         assert(secretKey ~= nil, "secretKey invalid")
@@ -109,6 +109,18 @@ function handle(r)
             end
         end
         r:debug(string.format("[%s] Value of variable errorCode: %s", DEBUG_TAG, errorCode))
+
+        -- configure cookie options
+        local cookieOptions = 
+        {
+            httpOnly = false,
+            secure = false,
+            sameSite = nil
+        }
+        
+        if (co_httpOnly ~= nil and co_httpOnly == 'true') then cookieOptions.httpOnly = true end
+        if (co_secure ~= nil and co_secure == 'true') then cookieOptions.secure = true end
+        if (co_sameSite ~= nil and (co_sameSite == 'none' or co_sameSite == 'lax' or co_sameSite == 'strict' )) then cookieOptions.sameSite = co_sameSite end
 
         -- initialize helper functions
         initRequiredHelpers(r, cookieOptions)
