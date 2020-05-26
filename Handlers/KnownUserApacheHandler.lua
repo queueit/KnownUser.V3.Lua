@@ -122,12 +122,6 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 	-- ********************************************************************************
 	-- END Implement required helpers
 
-	--Adding no cache headers to prevent browsers to cache requests
-	request_rec.err_headers_out["Cache-Control"] = "no-cache, no-store, must-revalidate"
-	request_rec.err_headers_out["Pragma"] = "no-cache"
-	request_rec.err_headers_out["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
-	--end
-
 	local queueitToken = request_rec:parseargs()["queueittoken"]
 	local fullUrl = iHelpers.request.getAbsoluteUri()
 	local currentUrlWithoutQueueitToken = fullUrl:gsub("([\\%?%&])(" .. knownUser.QUEUEIT_TOKEN_KEY .. "=[^&]*)", "")	
@@ -140,6 +134,12 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 	end
 		
 	if (validationResult:doRedirect()) then
+		--Adding no cache headers to prevent browsers to cache requests
+	    request_rec.err_headers_out["Cache-Control"] = "no-cache, no-store, must-revalidate"
+	    request_rec.err_headers_out["Pragma"] = "no-cache"
+	    request_rec.err_headers_out["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
+	    --end
+		
 		if (validationResult.isAjaxResult) then
 			request_rec.err_headers_out[validationResult.getAjaxQueueRedirectHeaderKey()] = validationResult:getAjaxRedirectUrl()
 		else					

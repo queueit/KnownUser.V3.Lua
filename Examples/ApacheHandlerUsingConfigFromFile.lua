@@ -36,7 +36,7 @@
 --      SetEnv  QUEUEIT_COOKIE_OPTIONS_HTTPONLY     "false"
 --      SetEnv  QUEUEIT_COOKIE_OPTIONS_SECURE       "false"
 --      SetEnv  QUEUEIT_COOKIE_OPTIONS_SAMESITE     "none"
---      LuaMapHandler  "{URI_PATTERN}"  "{APP_FOLDER}/ApacheHandlerUsingConfigFromFile.lua"
+--      LuaMapHandler  "{URI_PATTERN}"  "{APP_FOLDER}/Handlers/ApacheHandlerUsingConfigFromFile.lua"
 --      LuaPackagePath "{APP_FOLDER}/SDK/?.lua"
 --      LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"
 --      LuaPackagePath "{APP_FOLDER}/Handlers/?.lua"

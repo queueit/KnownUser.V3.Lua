@@ -5,7 +5,7 @@ local utils = require("Utils")
 local userInQueueStateCookieRepository = require("UserInQueueStateCookieRepository")
 
 local svc = {
-	SDK_VERSION = "v3-lua-" .. "3.6.0"
+	SDK_VERSION = "v3-lua-" .. "3.6.1"
 }
 
 -- Private functions
