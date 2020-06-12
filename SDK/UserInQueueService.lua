@@ -5,7 +5,17 @@ local utils = require("Utils")
 local userInQueueStateCookieRepository = require("UserInQueueStateCookieRepository")
 
 local svc = {
-	SDK_VERSION = "v3-lua-" .. "3.6.1"
+    SDK_VERSION = "v3-lua-" .. "3.6.2",
+    TokenValidationResult = {
+		create = function(isValid, errorCode)
+			local model = {
+				isValid = isValid;
+				errorCode = errorCode;
+			}
+	
+			return model			
+		end
+	}    
 }
 
 -- Private functions
@@ -41,9 +51,7 @@ local function generateRedirectUrl(queueDomain, uriPath, query)
     return "https://" .. queueDomain .. uriPath .. "?" .. query
 end
 
-local function cancelQueueCookieReturnQueueResult(customerId, targetUrl, config)
-    userInQueueStateCookieRepository.cancelQueueCookie(config.eventId, config.cookieDomain)
-   
+local function getQueueResult(targetUrl, config, customerId)
     local tparam = ""
 	if (utils.toString(targetUrl) ~= "") then
 		tparam = "&t=" .. utils.urlEncode(targetUrl)
@@ -57,9 +65,7 @@ local function cancelQueueCookieReturnQueueResult(customerId, targetUrl, config)
     return models.RequestValidationResult.create(models.ActionTypes.QueueAction, config.eventId, nil, redirectUrl, nil, config.actionName)
 end
 
-local function cancelQueueCookieReturnErrorResult(customerId, targetUrl, config, qParams, errorCode)
-    userInQueueStateCookieRepository.cancelQueueCookie(config.eventId, config.cookieDomain)
-    
+local function getErrorResult(customerId, targetUrl, config, qParams, errorCode)
     local tParam = ""
 	if (utils.toString(targetUrl) ~= "") then
 		tParam = "&t=" .. utils.urlEncode(targetUrl)
@@ -75,20 +81,7 @@ local function cancelQueueCookieReturnErrorResult(customerId, targetUrl, config,
     return models.RequestValidationResult.create(models.ActionTypes.QueueAction, config.eventId, nil, redirectUrl, nil, config.actionName)
 end
 
-local function getQueueITTokenValidationResult(customerId, targetUrl, secretKey, config, queueParams)
-    local calculatedHash = iHelpers.hash.hmac_sha256_encode(queueParams.queueITTokenWithoutHash, secretKey)
-    if (string.upper(calculatedHash) ~= string.upper(queueParams.hashCode)) then
-        return cancelQueueCookieReturnErrorResult(customerId, targetUrl, config, queueParams, "hash")
-    end
-
-    if (string.upper(queueParams.eventId) ~= string.upper(config.eventId)) then
-        return cancelQueueCookieReturnErrorResult(customerId, targetUrl, config, queueParams, "eventid")
-    end
-
-	if (queueParams.timeStamp < os.time()) then
-       return cancelQueueCookieReturnErrorResult(customerId, targetUrl, config, queueParams, "timestamp")
-    end
-	
+local function getValidTokenResult(config, queueParams, secretKey)
 	userInQueueStateCookieRepository.store(
         config.eventId,
         queueParams.queueId,
@@ -96,9 +89,26 @@ local function getQueueITTokenValidationResult(customerId, targetUrl, secretKey,
         utils.toString(config.cookieDomain),
         queueParams.redirectType,
         secretKey)
-
 	return models.RequestValidationResult.create(models.ActionTypes.QueueAction, config.eventId, queueParams.queueId, nil, queueParams.redirectType, config.actionName)
 end
+
+local function validateToken(config, queueParams, secretKey)
+    local calculatedHash = iHelpers.hash.hmac_sha256_encode(queueParams.queueITTokenWithoutHash, secretKey)
+    if (string.upper(calculatedHash) ~= string.upper(queueParams.hashCode)) then
+        return svc.TokenValidationResult.create(false, "hash")
+    end
+
+    if (string.upper(queueParams.eventId) ~= string.upper(config.eventId)) then
+        return svc.TokenValidationResult.create(false, "eventid")
+    end
+
+	if (queueParams.timeStamp < os.time()) then
+        return svc.TokenValidationResult.create(false, "timestamp")
+    end
+
+    return svc.TokenValidationResult.create(true, "")
+end
+
 -- END Private functions
 
 svc.validateQueueRequest = function(targetUrl, queueitToken, config, customerId, secretKey)			
@@ -119,11 +129,28 @@ svc.validateQueueRequest = function(targetUrl, queueitToken, config, customerId,
     end
     
     local queueParams = qitHelpers.QueueUrlParams.extractQueueParams(queueitToken)
+
+    local requestValidationResult
+    local isTokenValid = false
+
     if (queueParams ~= nil) then
-        return getQueueITTokenValidationResult(customerId, targetUrl, secretKey, config, queueParams)
+        tokenValidationResult = validateToken(config, queueParams, secretKey)
+        isTokenValid = tokenValidationResult.isValid
+
+        if(isTokenValid) then
+            requestValidationResult = getValidTokenResult(config, queueParams, secretKey)
+        else
+            requestValidationResult = getErrorResult(customerId, targetUrl, config, queueParams, tokenValidationResult.errorCode);
+        end
     else
-        return cancelQueueCookieReturnQueueResult(customerId, targetUrl, config)
+        requestValidationResult = getQueueResult(targetUrl, config, customerId);
+    end 
+
+    if (state.isFound and not isTokenValid) then
+        userInQueueStateCookieRepository.cancelQueueCookie(config.eventId, config.cookieDomain);
     end
+
+    return requestValidationResult;
 end
 
 svc.validateCancelRequest = function(targetUrl, cancelConfig, customerId, secretKey)

@@ -135,7 +135,7 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 		
 	if (validationResult:doRedirect()) then
 		--Adding no cache headers to prevent browsers to cache requests
-	    request_rec.err_headers_out["Cache-Control"] = "no-cache, no-store, must-revalidate"
+	    request_rec.err_headers_out["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
 	    request_rec.err_headers_out["Pragma"] = "no-cache"
 	    request_rec.err_headers_out["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
 	    --end

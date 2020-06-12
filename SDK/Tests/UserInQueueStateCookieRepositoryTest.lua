@@ -260,7 +260,8 @@ function UserInQueueStateCookieRepositoryTest()
 		state = userInQueueStateCookieRepository.getState(eventId, 10, secretKey, true)
 
         assert( state:isStateExtendable() )
-		assert( state.isValid )
+        assert( state.isValid )
+        assert( state.isFound )        
         assert( state.queueId == queueId )
 		assert( state.redirectType == "queue" )
 	end
@@ -278,7 +279,8 @@ function UserInQueueStateCookieRepositoryTest()
 		iHelpers.response.setCookie(cookieKey, "EventId=" .. eventId .. "&QueueId=" .. queueId .. "&RedirectType=queue&IssueTime=" .. issueTime .. "&Hash=" .. hash, os.time() + (24*60*60), cookieDomain)
 		state = userInQueueStateCookieRepository.getState(eventId, 10, secretKey, true)
 
-		assert(state.isValid == false )
+        assert(state.isValid == false )
+        assert(state.isFound )
 	end
 	test_getState_oldCookie_invalid_expiredCookie_extendable()
 	
@@ -294,7 +296,8 @@ function UserInQueueStateCookieRepositoryTest()
 		iHelpers.response.setCookie(cookieKey, "EventId=" .. eventId .. "&QueueId=" .. queueId .. "&FixedValidityMins=3&RedirectType=idle&IssueTime=" .. issueTime .. "&Hash=" .. hash, os.time() + (24*60*60), cookieDomain)
 		state = userInQueueStateCookieRepository.getState(eventId, 10, secretKey, true)
 
-		assert( state.isValid == false )
+        assert( state.isValid == false )
+        assert( state.isFound )
 	end
 	test_getState_oldCookie_invalid_expiredCookie_nonExtendable()
 
@@ -311,10 +314,24 @@ function UserInQueueStateCookieRepositoryTest()
 		state = userInQueueStateCookieRepository.getState(eventId, 10, secretKey, true)
 
 		assert( state:isStateExtendable() == false )
-		assert( state.isValid )
+        assert( state.isValid )
+        assert( state.isFound )
         assert( state.queueId == queueId )
 		assert( state.redirectType == "idle" )
 	end
-	test_getState_validCookieFormat_nonExtendable()	
+    test_getState_validCookieFormat_nonExtendable()	
+
+    local function test_getState_noCookie()
+        mockCookies = { } -- reset
+
+		eventId = "event1"
+        secretKey = "4e1deweb821-a82ew5-49da-acdqq0-5d3476f2068db"
+        
+		state = userInQueueStateCookieRepository.getState(eventId, 10, secretKey, true)
+
+        assert( state.isFound == false )
+		assert( state.isValid  == false )
+	end
+	test_getState_noCookie()	
 end
 UserInQueueStateCookieRepositoryTest()

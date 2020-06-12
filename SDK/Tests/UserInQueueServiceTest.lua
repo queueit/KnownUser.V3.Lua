@@ -49,7 +49,7 @@ function UserInQueueServiceTest()
 	
 	local function test_validateQueueRequest_ValidState_ExtendableCookie_NoCookieExtensionFromConfig_DoNotRedirectDoNotStoreCookieWithExtension()
 		userInQueueStateCookieRepositoryMock.reset()
-		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(true, "queueId", nil, "idle")
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(true, true, "queueId", nil, "idle")
 
 		local eventConfig = models.QueueEventConfig.create()
 		eventConfig.eventId = "e1"
@@ -76,7 +76,7 @@ function UserInQueueServiceTest()
 
 	local function test_validateQueueRequest_ValidState_ExtendableCookie_CookieExtensionFromConfig_DoNotRedirectDoStoreCookieWithExtension()
         userInQueueStateCookieRepositoryMock.reset()
-		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(true, "queueId", nil, "disabled")
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(true, true, "queueId", nil, "disabled")
 		
 		local eventConfig = models.QueueEventConfig.create()
         eventConfig.eventId = "e1"
@@ -106,7 +106,7 @@ function UserInQueueServiceTest()
 	
     local function test_validateQueueRequest_ValidState_NoExtendableCookie_DoNotRedirectDoNotStoreCookieWithExtension()
         userInQueueStateCookieRepositoryMock.reset()
-		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(true, "queueId", 3, "idle")
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(true, true, "queueId", 3, "idle")
 		
 		local eventConfig = models.QueueEventConfig.create()
         eventConfig.eventId = "e1"
@@ -128,7 +128,7 @@ function UserInQueueServiceTest()
 	
 	local function test_validateQueueRequest_NoCookie_TampredToken_RedirectToErrorPageWithHashError_DoNotStoreCookie()
         userInQueueStateCookieRepositoryMock.reset()
-		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, nil, nil, nil)
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, false, nil, nil, nil)
 		
 		local key = "4e1db821-a825-49da-acd0-5d376f2068db"
         local eventConfig = models.QueueEventConfig.create()
@@ -162,13 +162,13 @@ function UserInQueueServiceTest()
 		assert( os.time() - timestamp < 100 )
 		local urlWithoutTimeStamp = result.redirectUrl:gsub(tsPart, "")
         assert( urlWithoutTimeStamp == expectedErrorUrl )
-        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )		
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) == nil )		
     end
 	test_validateQueueRequest_NoCookie_TampredToken_RedirectToErrorPageWithHashError_DoNotStoreCookie()
 
     local function test_validateQueueRequest_NoCookie_ExpiredTimeStampInToken_RedirectToErrorPageWithTimeStampError_DoNotStoreCookie()
         userInQueueStateCookieRepositoryMock.reset()
-		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, nil, nil, nil)
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, false, nil, nil, nil)
 		
 		local key = "4e1db821-a825-49da-acd0-5d376f2068db"
         local eventConfig = models.QueueEventConfig.create()
@@ -201,13 +201,13 @@ function UserInQueueServiceTest()
 		assert( os.time() - timestamp < 100 )
 		local urlWithoutTimeStamp = result.redirectUrl:gsub(tsPart, "")
         assert( urlWithoutTimeStamp == expectedErrorUrl )
-        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) == nil )
     end
 	test_validateQueueRequest_NoCookie_ExpiredTimeStampInToken_RedirectToErrorPageWithTimeStampError_DoNotStoreCookie()
 	
     local function test_validateQueueRequest_NoCookie_EventIdMismatch_RedirectToErrorPageWithEventIdMissMatchError_DoNotStoreCookie()
         userInQueueStateCookieRepositoryMock.reset()
-		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, nil, nil, nil)
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, false, nil, nil, nil)
 		
 		local key = "4e1db821-a825-49da-acd0-5d376f2068db"
         local eventConfig = models.QueueEventConfig.create()
@@ -240,13 +240,13 @@ function UserInQueueServiceTest()
 		assert( os.time() - timestamp < 100 )
 		local urlWithoutTimeStamp = result.redirectUrl:gsub(tsPart, "")
         assert( urlWithoutTimeStamp == expectedErrorUrl )
-        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) == nil )
     end
 	test_validateQueueRequest_NoCookie_EventIdMismatch_RedirectToErrorPageWithEventIdMissMatchError_DoNotStoreCookie()
 	
     local function test_validateQueueRequest_NoCookie_ValidToken_ExtendableCookie_DoNotRedirect_StoreExtendableCookie()
         userInQueueStateCookieRepositoryMock.reset()
-		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, nil, nil, nil)
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, false, nil, nil, nil)
 		
 		local key = "4e1db821-a825-49da-acd0-5d376f2068db"
         local eventConfig = models.QueueEventConfig.create()
@@ -281,7 +281,7 @@ function UserInQueueServiceTest()
 
     local function test_validateQueueRequest_NoCookie_ValidToken_CookieValidityMinuteFromToken_DoNotRedirect_StoreNonExtendableCookie()
         userInQueueStateCookieRepositoryMock.reset()
-		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, nil, nil, nil)
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, false, nil, nil, nil)
 		
 		local key = "4e1db821-a825-49da-acd0-5d376f2068db"
         local eventConfig = models.QueueEventConfig.create()
@@ -316,7 +316,7 @@ function UserInQueueServiceTest()
 
     local function test_NoCookie_NoValidToken_WithoutToken_RedirectToQueue()
         userInQueueStateCookieRepositoryMock.reset()
-		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, nil, nil, nil)
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, false, nil, nil, nil)
 		
 		local key = "4e1db821-a825-49da-acd0-5d376f2068db"
         local eventConfig = models.QueueEventConfig.create()
@@ -348,13 +348,13 @@ function UserInQueueServiceTest()
         assert( result.eventId == 'e1' )
         assert( result.queueId == nil )
         assert( result.redirectUrl == expectedRedirectUrl )
-        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) == nil )
     end
 	test_NoCookie_NoValidToken_WithoutToken_RedirectToQueue()
 
 	local function test_ValidateRequest_NoCookie_WithoutToken_RedirectToQueue_NotargetUrl()
 		userInQueueStateCookieRepositoryMock.reset()
-		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, nil, nil, nil)
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, false, nil, nil, nil)
 
 		local key = "4e1db821-a825-49da-acd0-5d376f2068db"
         local eventConfig = models.QueueEventConfig.create()
@@ -384,13 +384,13 @@ function UserInQueueServiceTest()
         assert( result.eventId == 'e1' )
         assert( result.queueId == nil )
         assert( result.redirectUrl == expectedRedirectUrl )
-        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) == nil )
 	end
-	test_ValidateRequest_NoCookie_WithoutToken_RedirectToQueue_NotargetUrl()
-
-    local function test_validateQueueRequest_NoCookie_InValidToken()
+    test_ValidateRequest_NoCookie_WithoutToken_RedirectToQueue_NotargetUrl()
+    
+    local function test_validateQueueRequest_InvalidCookie_InvalidToken_CancelCookie()
         userInQueueStateCookieRepositoryMock.reset()
-		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, nil, nil, nil)
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(true, false, nil, nil, nil)
 		
 		local key = "4e1db821-a825-49da-acd0-5d376f2068db"
         local eventConfig = models.QueueEventConfig.create()
@@ -416,11 +416,71 @@ function UserInQueueServiceTest()
         assert( utils.startsWith(result.redirectUrl, "https://testDomain.com/error/hash/?c=testCustomer&e=e1") )
         assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )
     end
-	test_validateQueueRequest_NoCookie_InValidToken()
+	test_validateQueueRequest_InvalidCookie_InvalidToken_CancelCookie()
+
+    local function test_validateQueueRequest_NoCookie_InvalidToken()
+        userInQueueStateCookieRepositoryMock.reset()
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(false, false, nil, nil, nil)
+		
+		local key = "4e1db821-a825-49da-acd0-5d376f2068db"
+        local eventConfig = models.QueueEventConfig.create()
+        eventConfig.eventId = "e1"
+        eventConfig.queueDomain = "testDomain.com"
+        eventConfig.cookieValidityMinute = 10
+        eventConfig.extendCookieValidity = true
+        eventConfig.version = 11
+        eventConfig.culture = 'en-US'
+        eventConfig.layoutName = 'testlayout'
+        eventConfig.actionName = "QueueAction"
+        local url = "http://test.test.com?b=h"
+		        
+        local token = ""
+	        
+        local result = userInQueueService.validateQueueRequest(url, "ts_sasa~cv_adsasa~ce_falwwwse~q_944c1f44-60dd-4e37-aabc-f3e4bb1c8895", eventConfig, "testCustomer", key)
+        
+		assert( next(userInQueueStateCookieRepositoryMock.storeCall) == nil )
+        assert( result:doRedirect() )
+        assert( result.eventId == 'e1' )
+        assert( result.queueId == nil )
+        assert( result.actionName == eventConfig.actionName )
+        assert( utils.startsWith(result.redirectUrl, "https://testDomain.com/error/hash/?c=testCustomer&e=e1") )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) == nil )
+    end
+    test_validateQueueRequest_NoCookie_InvalidToken()
+
+    local function test_validateQueueRequest_InvalidCookie_InvalidToken_CancelCookie()
+        userInQueueStateCookieRepositoryMock.reset()
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(true, false, nil, nil, nil)
+		
+		local key = "4e1db821-a825-49da-acd0-5d376f2068db"
+        local eventConfig = models.QueueEventConfig.create()
+        eventConfig.eventId = "e1"
+        eventConfig.queueDomain = "testDomain.com"
+        eventConfig.cookieValidityMinute = 10
+        eventConfig.extendCookieValidity = true
+        eventConfig.version = 11
+        eventConfig.culture = 'en-US'
+        eventConfig.layoutName = 'testlayout'
+        eventConfig.actionName = "QueueAction"
+        local url = "http://test.test.com?b=h"
+		        
+        local token = ""
+	        
+        local result = userInQueueService.validateQueueRequest(url, "ts_sasa~cv_adsasa~ce_falwwwse~q_944c1f44-60dd-4e37-aabc-f3e4bb1c8895", eventConfig, "testCustomer", key)
+        
+		assert( next(userInQueueStateCookieRepositoryMock.storeCall) == nil )
+        assert( result:doRedirect() )
+        assert( result.eventId == 'e1' )
+        assert( result.queueId == nil )
+        assert( result.actionName == eventConfig.actionName )
+        assert( utils.startsWith(result.redirectUrl, "https://testDomain.com/error/hash/?c=testCustomer&e=e1") )
+        assert( next(userInQueueStateCookieRepositoryMock.cancelQueueCookieCall) ~= nil )
+    end
+    test_validateQueueRequest_InvalidCookie_InvalidToken_CancelCookie()
 
     local function test_validateCancelRequest()
 		userInQueueStateCookieRepositoryMock.reset()
-		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(true, "queueid", 3, "idle")
+		userInQueueStateCookieRepositoryMock.returnThisState = userInQueueStateCookieRepositoryMock.StateInfo.create(true, true, "queueid", 3, "idle")
 
         local key = "4e1db821-a825-49da-acd0-5d376f2068db"
         local eventConfig = models.CancelEventConfig.create()

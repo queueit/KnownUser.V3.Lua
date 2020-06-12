@@ -91,8 +91,9 @@ end
 
 local repo = { 
 	StateInfo = {
-		create = function(isValid, queueId, fixedCookieValidityMinutes, redirectType)
+		create = function(isFound, isValid, queueId, fixedCookieValidityMinutes, redirectType)
 			local model = {
+				isFound = isFound,
 				isValid = isValid,
 				queueId = queueId,
 				fixedCookieValidityMinutes = fixedCookieValidityMinutes,
@@ -116,27 +117,36 @@ repo.cancelQueueCookie = function(eventId, cookieDomain)
 end
 
 repo.getState = function(eventId, cookieValidityMinutes, secretKey, validateTime)
-	local cookieKey = repo.getCookieKey(eventId)
-    if (iHelpers.request.getUnescapedCookieValue(cookieKey) == nil) then
-		return repo.StateInfo.create(false, nil, nil, nil)
-    end
-    local cookieNameValueMap = getCookieNameValueMap(iHelpers.request.getUnescapedCookieValue(cookieKey))
+	local pcall_status, pcall_result = pcall(function()
+		local cookieKey = repo.getCookieKey(eventId)
+		if (iHelpers.request.getUnescapedCookieValue(cookieKey) == nil) then
+			return repo.StateInfo.create(false, false, nil, nil, nil)
+		end
+		local cookieNameValueMap = getCookieNameValueMap(iHelpers.request.getUnescapedCookieValue(cookieKey))
 	
-    if (isCookieValid(secretKey, cookieNameValueMap, eventId, cookieValidityMinutes, validateTime) == false) then
-        return repo.StateInfo.create(false, nil, nil, nil)
-    end
+		if (isCookieValid(secretKey, cookieNameValueMap, eventId, cookieValidityMinutes, validateTime) == false) then
+			return repo.StateInfo.create(true, false, nil, nil, nil)
+		end
 
-	local fixedCookieValidityMinutes = nil
-	if (cookieNameValueMap["FixedValidityMins"] ~= nil) then
-        fixedCookieValidityMinutes = tonumber(cookieNameValueMap["FixedValidityMins"])
-    end
+		local fixedCookieValidityMinutes = nil
+		if (cookieNameValueMap["FixedValidityMins"] ~= nil) then
+			fixedCookieValidityMinutes = tonumber(cookieNameValueMap["FixedValidityMins"])
+		end
 
-    return repo.StateInfo.create(
-        true, 
-        cookieNameValueMap["QueueId"],
-		fixedCookieValidityMinutes,
-        cookieNameValueMap["RedirectType"]
-	)
+		return repo.StateInfo.create(
+			true, 
+			true, 
+			cookieNameValueMap["QueueId"],
+			fixedCookieValidityMinutes,
+			cookieNameValueMap["RedirectType"]
+		)
+	end)
+
+	if (pcall_status) then
+		return pcall_result
+	end
+
+	return repo.StateInfo.create(true, false, nil, nil, nil)
 end
 
 repo.reissueQueueCookie = function(eventId, cookieValidityMinutes, cookieDomain, secretKey)
