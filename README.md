@@ -134,12 +134,12 @@ function handle(request_rec)
        local models = require("Models")
        eventconfig = models.QueueEventConfig.create()
        eventconfig.eventId = ""; -- ID of the queue to use
-       eventconfig.queueDomain = "xxx.queue-it.net"; -- Domain name of the queue, usually in the format [CustomerId].queue-it.net
+       eventconfig.queueDomain = "xxx.queue-it.net"; -- Domain name of the queue.
        -- eventconfig.cookieDomain = ".my-shop.com"; -- Optional, domain name where the Queue-it session cookie should be saved
-       eventconfig.cookieValidityMinute = 15; -- Optional, validity of the Queue-it session cookie. Default is 10 minutes.
-       eventconfig.extendCookieValidity = true; -- Optional, should the Queue-it session cookie validity time be extended each time the validation runs? Default is true.
-       -- eventconfig.culture = "en-US"; -- Optional, culture of the queue ticket layout in the format specified here: https:-- msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx Default is to use what is specified on Event
-       -- eventconfig.layoutName = "NameOfYourCustomLayout"; -- Optional, name of the queue ticket layout e.g. "Default layout by Queue-it". Default is to take what is specified on the Event
+       eventconfig.cookieValidityMinute = 15; -- validity of the Queue-it session cookie should be positive number.
+       eventconfig.extendCookieValidity = true; -- Should the Queue-it session cookie validity time be extended each time the validation runs?
+       -- eventconfig.culture = "en-US"; -- Optional, culture of the queue layout in the format specified here: https:-- msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx. If unspecified then settings from Event will be used.
+       -- eventconfig.layoutName = "NameOfYourCustomLayout"; -- Optional, name of the queue layout. If unspecified then settings from Event will be used.
 
        initRequiredHelpers(request_rec)
 
