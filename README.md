@@ -45,79 +45,38 @@ If the timestamp or hash is invalid, the user is send back to the queue.
 
 ## Implementation
 
-This Lua KnownUser option, should support many different enviroment setups.
-Therefore as much code as possible is found within the SDK (https://github.com/queueit/KnownUser.V3.Lua/tree/master/SDK) and the rest is exposed in specific handlers. With this solution the SDK code stays unmodified and only a little work is needed to create or modify a existing handler (https://github.com/queueit/KnownUser.V3.Lua/tree/master/Handlers).
+### Apache
 
-Currently an example handler for Apache (v. 2.4.10+) is available (see below), so if you need something else please reach out to us and then we can help out with creating a new handler, e.g. implementing missing parts from KnownUserImplementationHelpers:
-- Read request URL 
-- Read request host (user agent IP address)
-- Read request headers
-- Read request cookies
-- Write response cookies
+#### Quick start - using Apache config
+A quick way to get started is to use the ready-made example using Apache httpd handler *[ApacheHandlerUsingConfigFromFile](Examples/ApacheHandlerUsingConfigFromFile.lua)*.
+It ships with the SDK and allows for an easy setup without having to implement a custom Lua handler.
+All the configuration is done in Apache httpd configuration (for example in `httpd.conf` or `apache2.conf`).
 
-### Apache web server
-Example using KnownUserApacheHandler.lua on Apache.
+Download and store the integration configuration in `/var/www/lua/integration_config.json`.
+When the integration configuration changes, this file needs to be updated.
 
-- Edit http.config
-```
+Note that setting a custom error response code using `QUEUEIT_ERROR_CODE` is optional.
+If no error code is set, the handler declines to act if an error occurs and the request is let through.
+
+Then, add the following lines to your Apache httpd configuration, filling in the placeholders denoted by braces (e.g. `{CUSTOMER_ID}`):
+
+```apache2
 LoadModule lua_module modules/mod_lua.so
-LuaMapHandler "{URI_PATTERN}" "{APP_FOLDER}/handler.lua"
-<IfModule lua_module>
- LuaPackagePath "{APP_FOLDER}/SDK/?.lua"
- LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"
- LuaPackagePath "{APP_FOLDER}/Handlers/?.lua"
-</IfModule>
+[...]
+SetEnv  QUEUEIT_CUSTOMER_ID     "{CUSTOMER_ID}"
+SetEnv  QUEUEIT_SECRET_KEY      "{SECRET_KEY}"
+SetEnv  QUEUEIT_INT_CONF_FILE   "{APP_FOLDER}/integration_config.json"
+SetEnv  QUEUEIT_ERROR_CODE      "400"
+LuaMapHandler  "{URI_PATTERN}"  "{APP_FOLDER}/ApacheHandlerUsingConfigFromFile.lua"
+LuaPackagePath "{APP_FOLDER}/SDK/?.lua"
+LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"
+LuaPackagePath "{APP_FOLDER}/Handlers/?.lua"
 ```
-{APP_FOLDER} = Apache www folder where your app/integration is located. Ex. 'C:/wamp64/www/lua'  
-{URI_PATTERN} = Pattern used to match which URLs should go through the handler.   https://httpd.apache.org/docs/trunk/mod/mod_lua.html#luamaphandler
 
-- Copy SDK, Handlers and Helpers folders (incl. content) to {APP_FOLDER}
-
-- Create `handler.lua` in {APP_FOLDER}:
-```
-local function initRequiredHelpers(request_rec)
-  iHelpers = require("KnownUserImplementationHelpers")
-
-  iHelpers.request.getAbsoluteUri = function()	
-    -- UPDATE BELOW TO MATCH YOUR USE CASE. EX. USE HTTPS AND REMOVE PORT
-    return "http://" .. request_rec.hostname .. ":" .. request_rec.port .. request_rec.unparsed_uri
-  end  
-end
-
-function handle(request_rec)
-   local success, result = pcall
-   (
-      function()
-        integrationConfigJson = 
-        [[
-          ... INSERT INTEGRATION CONFIG ...
-        ]]
-	
-        initRequiredHelpers(request_rec)
-
-        kuHandler = require("KnownUserApacheHandler")
-	
-        return kuHandler.handleByIntegrationConfig(
-           "... INSERT CUSTOMER ID ...", 
-           "... INSERT SECRET KEY ...", 
-           integrationConfigJson, 
-           request_rec)
-      end
-   )
-   
-   if (success) then
-     return result
-   else
-     -- There was an error validating the request
-     -- Use your own logging framework to log the error
-     -- This was a configuration error, so we let the user continue
-     return apache2.DECLINED
-   end   
-end
-```
-Note in the above example, you need to fill in your Customer ID, Secret key, provide the integration config JSON and optionally alter code in method getAbsoluteUri.
-
-Visit `handler.lua` using a browser to see it works.
+{CUSTOMER_ID} = Your customer ID found via GO Queue-it platform.
+{SECRET_KEY} = Your secret key found via GO Queue-it platform.
+{APP_FOLDER} = Apache www folder where your app/integration is located. Ex. 'C:/wamp64/www/lua'. Make sure SDK, Handlers and Helpers folders (incl. content) are copied here. 
+{URI_PATTERN} = Pattern used to match which URLs should go through the handler. https://httpd.apache.org/docs/trunk/mod/mod_lua.html#luamaphandler
 
 #### Using local queue configuration
 As an alternative to the above, you can specify the configuration in code without using the Trigger/Action paradigm. 
@@ -164,27 +123,15 @@ function handle(request_rec)
 end
 ```
 
-#### Quick start - using Apache config
-A quick way to get started is to use the ready-made Apache httpd handler *[ApacheHandlerUsingConfigFromFile](Examples/ApacheHandlerUsingConfigFromFile.lua)*.
-It ships with the SDK and allows for an easy setup without having to implement a custom Lua handler.
-All the configuration is done in Apache httpd configuration (for example in `httpd.conf` or `apache2.conf`).
+### Other (ex. Nginx)
+This Lua KnownUser offering can support many different platforms incl. Nginx.
+Therefore as much code as possible is found within the SDK (https://github.com/queueit/KnownUser.V3.Lua/tree/master/SDK) and the rest is exposed in specific handlers. With this solution the SDK code stays unmodified and only a little work is needed to create or modify a existing handler (https://github.com/queueit/KnownUser.V3.Lua/tree/master/Handlers).
 
-Download and store the integration configuration in `/var/www/lua/integration_config.json`.
-When the integration configuration changes, this file needs to be updated.
+To create a platform handler you will need to implement the missing parts from KnownUserImplementationHelpers:
+- Read request URL 
+- Read request host (user agent IP address)
+- Read request headers
+- Read request cookies
+- Write response cookies
 
-Note that setting a custom error response code using `QUEUEIT_ERROR_CODE` is optional.
-If no error code is set, the handler declines to act if an error occurs and the request is let through.
-
-Then, add the following lines to your Apache httpd configuration, filling in the placeholders denoted by braces (e.g. `{CUSTOMER_ID}`):
-```apache2
-LoadModule lua_module modules/mod_lua.so
-[...]
-SetEnv  QUEUEIT_CUSTOMER_ID     "{CUSTOMER_ID}"
-SetEnv  QUEUEIT_SECRET_KEY      "{SECRET_KEY}"
-SetEnv  QUEUEIT_INT_CONF_FILE   "{APP_FOLDER}/integration_config.json"
-SetEnv  QUEUEIT_ERROR_CODE      "400"
-LuaMapHandler  "{URI_PATTERN}"  "{APP_FOLDER}/ApacheHandlerUsingConfigFromFile.lua"
-LuaPackagePath "{APP_FOLDER}/SDK/?.lua"
-LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"
-LuaPackagePath "{APP_FOLDER}/Handlers/?.lua"
-```
+Look at how KnownUserApacheHandler.lua was done for inspiration.
