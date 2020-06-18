@@ -73,10 +73,10 @@ LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"
 LuaPackagePath "{APP_FOLDER}/Handlers/?.lua"
 ```
 
-{CUSTOMER_ID} = Your customer ID found via GO Queue-it platform.
-{SECRET_KEY} = Your secret key found via GO Queue-it platform.
-{APP_FOLDER} = Apache www folder where your app/integration is located. Ex. 'C:/wamp64/www/lua'. Make sure SDK, Handlers and Helpers folders (incl. content) are copied here. 
-{URI_PATTERN} = Pattern used to match which URLs should go through the handler. https://httpd.apache.org/docs/trunk/mod/mod_lua.html#luamaphandler
+- {CUSTOMER_ID} = Your customer ID found via GO Queue-it platform.
+- {SECRET_KEY} = Your secret key found via GO Queue-it platform.
+- {APP_FOLDER} = Apache www folder where your app/integration is located. Ex. 'C:/wamp64/www/lua'. Make sure SDK, Handlers and Helpers folders (incl. content) are copied here. 
+- {URI_PATTERN} = Pattern used to match which URLs should go through the handler. https://httpd.apache.org/docs/trunk/mod/mod_lua.html#luamaphandler
 
 #### Using local queue configuration
 As an alternative to the above, you can specify the configuration in code without using the Trigger/Action paradigm. 
