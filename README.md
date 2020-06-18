@@ -46,9 +46,7 @@ If the timestamp or hash is invalid, the user is send back to the queue.
 ## Implementation
 
 ### Apache
-
-#### Quick start - using Apache config
-A quick way to get started is to use the ready-made example using Apache httpd handler *[ApacheHandlerUsingConfigFromFile](Examples/ApacheHandlerUsingConfigFromFile.lua)*.
+A quick way to get started is to use the ready-made example *[ApacheHandlerUsingConfigFromFile](Examples/ApacheHandlerUsingConfigFromFile.lua)* using Apache httpd handler.
 It ships with the SDK and allows for an easy setup without having to implement a custom Lua handler.
 All the configuration is done in Apache httpd configuration (for example in `httpd.conf` or `apache2.conf`).
 
@@ -78,12 +76,41 @@ LuaPackagePath "{APP_FOLDER}/Handlers/?.lua"
 - {APP_FOLDER} = Apache www folder where your app/integration is located. Ex. 'C:/wamp64/www/lua'. Make sure SDK, Handlers and Helpers folders (incl. content) are copied here. 
 - {URI_PATTERN} = Pattern used to match which URLs should go through the handler. https://httpd.apache.org/docs/trunk/mod/mod_lua.html#luamaphandler
 
-#### Using local queue configuration
+### Other (ex. Nginx)
+This Lua KnownUser offering can support many different platforms incl. Nginx.
+Therefore as much code as possible is found within the SDK (https://github.com/queueit/KnownUser.V3.Lua/tree/master/SDK) and the rest is exposed in specific handlers. With this solution the SDK code stays unmodified and only a little work is needed to create or modify a existing handler (https://github.com/queueit/KnownUser.V3.Lua/tree/master/Handlers).
+
+To create a platform handler you will need to implement the missing parts from KnownUserImplementationHelpers:
+- Read request URL 
+- Read request host (user agent IP address)
+- Read request headers
+- Read request cookies
+- Write response cookies
+
+Look at how KnownUserApacheHandler.lua was done for inspiration.
+
+### Protecting ajax calls
+If you need to protect AJAX calls beside page loads you need to add the below JavaScript tags to your pages:
+
+```
+<script type="text/javascript" src="//static.queue-it.net/script/queueclient.min.js"></script>
+<script
+ data-queueit-intercept-domain="{YOUR_CURRENT_DOMAIN}"
+   data-queueit-intercept="true"
+  data-queueit-c="{YOUR_CUSTOMER_ID}"
+  type="text/javascript"
+  src="//static.queue-it.net/script/queueconfigloader.min.js">
+</script>
+```
+
+## Alternative Implementation
+
+### Queue configuration
 As an alternative to the above, you can specify the configuration in code without using the Trigger/Action paradigm. 
 In this case it is important *only to queue-up page requests* and not requests for resources or AJAX calls. 
 This can be done by adding custom filtering logic before calling the `kuHandler.handleByLocalConfig()` method. 
 
-The following is an example of how the handle function would look if the configuration is specified in code:
+The following is an example of how the handle function would look if the configuration is specified in code (using ApacheHandler):
 
 ```
 function handle(request_rec)
@@ -121,31 +148,4 @@ function handle(request_rec)
      return apache2.DECLINED
    end
 end
-```
-
-### Other (ex. Nginx)
-This Lua KnownUser offering can support many different platforms incl. Nginx.
-Therefore as much code as possible is found within the SDK (https://github.com/queueit/KnownUser.V3.Lua/tree/master/SDK) and the rest is exposed in specific handlers. With this solution the SDK code stays unmodified and only a little work is needed to create or modify a existing handler (https://github.com/queueit/KnownUser.V3.Lua/tree/master/Handlers).
-
-To create a platform handler you will need to implement the missing parts from KnownUserImplementationHelpers:
-- Read request URL 
-- Read request host (user agent IP address)
-- Read request headers
-- Read request cookies
-- Write response cookies
-
-Look at how KnownUserApacheHandler.lua was done for inspiration.
-
-### Protecting ajax calls
-If you need to protect AJAX calls beside page loads you need to add the below JavaScript tags to your pages:
-
-```
-<script type="text/javascript" src="//static.queue-it.net/script/queueclient.min.js"></script>
-<script
- data-queueit-intercept-domain="{YOUR_CURRENT_DOMAIN}"
-   data-queueit-intercept="true"
-  data-queueit-c="{YOUR_CUSTOMER_ID}"
-  type="text/javascript"
-  src="//static.queue-it.net/script/queueconfigloader.min.js">
-</script>
 ```
