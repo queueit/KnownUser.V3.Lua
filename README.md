@@ -135,3 +135,17 @@ To create a platform handler you will need to implement the missing parts from K
 - Write response cookies
 
 Look at how KnownUserApacheHandler.lua was done for inspiration.
+
+### Protecting ajax calls
+If you need to protect AJAX calls beside page loads you need to add the below JavaScript tags to your pages:
+
+```
+<script type="text/javascript" src="//static.queue-it.net/script/queueclient.min.js"></script>
+<script
+ data-queueit-intercept-domain="{YOUR_CURRENT_DOMAIN}"
+   data-queueit-intercept="true"
+  data-queueit-c="{YOUR_CUSTOMER_ID}"
+  type="text/javascript"
+  src="//static.queue-it.net/script/queueconfigloader.min.js">
+</script>
+```
