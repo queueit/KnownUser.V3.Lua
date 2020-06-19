@@ -107,7 +107,7 @@ If you need to protect AJAX calls beside page loads you need to add the below Ja
 
 ### Queue configuration
 As an alternative to the above, you can specify the configuration in code without using the Trigger/Action paradigm. 
-In this case it is important *only to queue-up page requests* and not requests for resources or AJAX calls. 
+In this case it is important *only to queue-up page requests* and not requests for resources. 
 This can be done by adding custom filtering logic before calling the `kuHandler.handleByLocalConfig()` method. 
 
 The following is an example of how the handle function would look if the configuration is specified in code (using ApacheHandler):
