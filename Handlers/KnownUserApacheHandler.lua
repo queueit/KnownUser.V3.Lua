@@ -148,7 +148,7 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 		end
 	else
 		-- Request can continue - we remove queueittoken form querystring parameter to avoid sharing of user specific token
-		if (fullUrl ~= currentUrlWithoutQueueitToken and validationResult.actionType ~= nil) then
+		if (fullUrl ~= currentUrlWithoutQueueitToken and validationResult.actionType == "Queue") then
 			request_rec.err_headers_out["Location"] = currentUrlWithoutQueueitToken
 			return apache2.HTTP_MOVED_TEMPORARILY
 		end
