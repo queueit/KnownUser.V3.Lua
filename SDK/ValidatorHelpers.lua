@@ -1,34 +1,33 @@
 local utils = require("Utils")
-local iHelpers = require("KnownUserImplementationHelpers")
 local comparisonOperatorHelper = require("ComparisonOperatorHelper")
 
 local model = {
 	UrlValidatorHelper = {
 		evaluate = function(triggerPart, url)
 			-- Private functions
-			local function getUrlPart(urlPart, url)        
+			local function getUrlPart(_urlPart, _url)
 				-- Private functions
-				local function getHostNameFromUrl(url)
-					return utils.toString(url:match('^%w+://([^/]+)'))
+				local function getHostNameFromUrl(__url)
+					return utils.toString(__url:match('^%w+://([^/]+)'))
 				end
-		
-				local function getPathFromUrl(url)
-					pathAndQuery = utils.toString(url:match('^%w+://[^/]+(.*)'))
-					query = utils.toString(url:match('%?+.*'))
-					path = pathAndQuery:gsub(utils.escapeMagicChars(query), "")
-			
+
+				local function getPathFromUrl(__url)
+					local pathAndQuery = utils.toString(__url:match('^%w+://[^/]+(.*)'))
+					local query = utils.toString(__url:match('%?+.*'))
+					local path = pathAndQuery:gsub(utils.escapeMagicChars(query), "")
+
 					return path
 				end
 				-- END Private functions
 
-				if (urlPart == "PagePath") then 
-					return getPathFromUrl(url)
+				if (_urlPart == "PagePath") then
+					return getPathFromUrl(_url)
 				end
-				if (urlPart == "PageUrl") then	
-					return url
+				if (_urlPart == "PageUrl") then
+					return _url
 				end
-				if (urlPart == "HostName") then 
-					return getHostNameFromUrl(url)
+				if (_urlPart == "HostName") then
+					return getHostNameFromUrl(_url)
 				end
 
 				return ""
@@ -36,17 +35,17 @@ local model = {
 			-- END Private functions
 
 			if (triggerPart == nil or
-				triggerPart["Operator"] == nil or 
-				triggerPart["IsNegative"] == nil or 
-				triggerPart["IsIgnoreCase"] == nil or 
-				triggerPart["UrlPart"] == nil) then 
+				triggerPart["Operator"] == nil or
+				triggerPart["IsNegative"] == nil or
+				triggerPart["IsIgnoreCase"] == nil or
+				triggerPart["UrlPart"] == nil) then
 				return false
 			end
 
 			return comparisonOperatorHelper.evaluate(
-				triggerPart["Operator"], 
-				triggerPart["IsNegative"], 
-				triggerPart["IsIgnoreCase"], 
+				triggerPart["Operator"],
+				triggerPart["IsNegative"],
+				triggerPart["IsIgnoreCase"],
 				getUrlPart(triggerPart["UrlPart"], url),
 				triggerPart["ValueToCompare"],
 				triggerPart["ValuesToCompare"])
@@ -55,10 +54,10 @@ local model = {
 	CookieValidatorHelper = {
 		evaluate = function(triggerPart, request)
 			if (triggerPart == nil or
-				triggerPart["Operator"] == nil or 
-				triggerPart["IsNegative"] == nil or 
-				triggerPart["IsIgnoreCase"] == nil or 
-				triggerPart["CookieName"] == nil) then 
+				triggerPart["Operator"] == nil or
+				triggerPart["IsNegative"] == nil or
+				triggerPart["IsIgnoreCase"] == nil or
+				triggerPart["CookieName"] == nil) then
 				return false
 			end
 
@@ -67,11 +66,11 @@ local model = {
 			if (cookieName ~= nil and request.getUnescapedCookieValue(cookieName) ~= nil) then
 				cookieValue = request.getUnescapedCookieValue(cookieName)
 			end
-    
+
 			return comparisonOperatorHelper.evaluate(
-				triggerPart["Operator"], 
-				triggerPart["IsNegative"], 
-				triggerPart["IsIgnoreCase"], 
+				triggerPart["Operator"],
+				triggerPart["IsNegative"],
+				triggerPart["IsIgnoreCase"],
 				cookieValue,
 				triggerPart["ValueToCompare"],
 				triggerPart["ValuesToCompare"])
@@ -80,9 +79,9 @@ local model = {
 	UserAgentValidatorHelper  = {
 		evaluate = function(triggerPart, request)
 			if (triggerPart == nil or
-				triggerPart["Operator"] == nil or 
-				triggerPart["IsNegative"] == nil or 
-				triggerPart["IsIgnoreCase"] == nil) then 
+				triggerPart["Operator"] == nil or
+				triggerPart["IsNegative"] == nil or
+				triggerPart["IsIgnoreCase"] == nil) then
 				return false
 			end
 
@@ -92,9 +91,9 @@ local model = {
 			end
 
 			return comparisonOperatorHelper.evaluate(
-				triggerPart["Operator"], 
-				triggerPart["IsNegative"], 
-				triggerPart["IsIgnoreCase"], 
+				triggerPart["Operator"],
+				triggerPart["IsNegative"],
+				triggerPart["IsIgnoreCase"],
 				headerValue,
 				triggerPart["ValueToCompare"],
 				triggerPart["ValuesToCompare"])
@@ -103,10 +102,10 @@ local model = {
 	HttpHeaderValidatorHelper = {
 		evaluate = function(triggerPart, request)
 			if (triggerPart == nil or
-				triggerPart["Operator"] == nil or 
-				triggerPart["IsNegative"] == nil or 
-				triggerPart["IsIgnoreCase"] == nil or 
-				triggerPart["HttpHeaderName"] == nil) then 
+				triggerPart["Operator"] == nil or
+				triggerPart["IsNegative"] == nil or
+				triggerPart["IsIgnoreCase"] == nil or
+				triggerPart["HttpHeaderName"] == nil) then
 				return false
 			end
 
@@ -117,9 +116,9 @@ local model = {
 			end
 
 			return comparisonOperatorHelper.evaluate(
-				triggerPart["Operator"], 
-				triggerPart["IsNegative"], 
-				triggerPart["IsIgnoreCase"], 
+				triggerPart["Operator"],
+				triggerPart["IsNegative"],
+				triggerPart["IsIgnoreCase"],
 				headerValue,
 				triggerPart["ValueToCompare"],
 				triggerPart["ValuesToCompare"])

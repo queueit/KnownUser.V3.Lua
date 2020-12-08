@@ -5,17 +5,17 @@ local utils = require("Utils")
 local userInQueueStateCookieRepository = require("UserInQueueStateCookieRepository")
 
 local svc = {
-    SDK_VERSION = "v3-lua-" .. "3.6.3",
+    SDK_VERSION = "v3-lua-" .. "3.6.4",
     TokenValidationResult = {
 		create = function(isValid, errorCode)
 			local model = {
 				isValid = isValid;
 				errorCode = errorCode;
 			}
-	
-			return model			
+
+			return model
 		end
-	}    
+	}
 }
 
 -- Private functions
@@ -35,7 +35,7 @@ local function getQueryString(customerId, eventId, configVersion, actionName, cu
     if (utils.toString(culture) ~= "") then
         table.insert(queryStringList, "cid=" .. utils.urlEncode(culture))
     end
-	
+
     if (utils.toString(layoutName) ~= "") then
         table.insert(queryStringList, "l=" .. utils.urlEncode(layoutName))
     end
@@ -57,12 +57,13 @@ local function getQueueResult(targetUrl, config, customerId)
 		tparam = "&t=" .. utils.urlEncode(targetUrl)
 	end
 
-    local query = getQueryString(customerId, config.eventId, config.version, 
+    local query = getQueryString(customerId, config.eventId, config.version,
                                     config.actionName, config.culture, config.layoutName) .. tparam
 
     local redirectUrl = generateRedirectUrl(config.queueDomain, "", query)
-		
-    return models.RequestValidationResult.create(models.ActionTypes.QueueAction, config.eventId, nil, redirectUrl, nil, config.actionName)
+
+    return models.RequestValidationResult.create(
+        models.ActionTypes.QueueAction, config.eventId, nil, redirectUrl, nil, config.actionName)
 end
 
 local function getErrorResult(customerId, targetUrl, config, qParams, errorCode)
@@ -70,15 +71,17 @@ local function getErrorResult(customerId, targetUrl, config, qParams, errorCode)
 	if (utils.toString(targetUrl) ~= "") then
 		tParam = "&t=" .. utils.urlEncode(targetUrl)
 	end
-	
-	local query = getQueryString(customerId, config.eventId, config.version, config.actionName, config.culture, config.layoutName)
+
+	local query = getQueryString(
+        customerId, config.eventId, config.version, config.actionName, config.culture, config.layoutName)
         .. "&queueittoken=" .. qParams.queueITToken
         .. "&ts=" .. os.time()
         .. tParam
 
     local redirectUrl = generateRedirectUrl(config.queueDomain, "error/" .. errorCode .. "/", query)
 
-    return models.RequestValidationResult.create(models.ActionTypes.QueueAction, config.eventId, nil, redirectUrl, nil, config.actionName)
+    return models.RequestValidationResult.create(
+        models.ActionTypes.QueueAction, config.eventId, nil, redirectUrl, nil, config.actionName)
 end
 
 local function getValidTokenResult(config, queueParams, secretKey)
@@ -89,7 +92,9 @@ local function getValidTokenResult(config, queueParams, secretKey)
         utils.toString(config.cookieDomain),
         queueParams.redirectType,
         secretKey)
-	return models.RequestValidationResult.create(models.ActionTypes.QueueAction, config.eventId, queueParams.queueId, nil, queueParams.redirectType, config.actionName)
+	return models.RequestValidationResult.create(
+        models.ActionTypes.QueueAction, config.eventId, queueParams.queueId,
+        nil, queueParams.redirectType, config.actionName)
 end
 
 local function validateToken(config, queueParams, secretKey)
@@ -111,7 +116,7 @@ end
 
 -- END Private functions
 
-svc.validateQueueRequest = function(targetUrl, queueitToken, config, customerId, secretKey)			
+svc.validateQueueRequest = function(targetUrl, queueitToken, config, customerId, secretKey)
 	local state = userInQueueStateCookieRepository.getState(config.eventId, config.cookieValidityMinute, secretKey, true)
 
     if (state.isValid) then
@@ -123,28 +128,30 @@ svc.validateQueueRequest = function(targetUrl, queueitToken, config, customerId,
 				utils.toString(config.cookieDomain),
                 state.redirectType,
                 secretKey)
-        end		
-		local result = models.RequestValidationResult.create(models.ActionTypes.QueueAction, config.eventId, state.queueId, nil, state.redirectType, config.actionName)
+        end
+		local result = models.RequestValidationResult.create(
+            models.ActionTypes.QueueAction, config.eventId, state.queueId, nil, state.redirectType, config.actionName)
         return result
     end
-    
+
     local queueParams = qitHelpers.QueueUrlParams.extractQueueParams(queueitToken)
 
     local requestValidationResult
     local isTokenValid = false
 
     if (queueParams ~= nil) then
-        tokenValidationResult = validateToken(config, queueParams, secretKey)
+        local tokenValidationResult = validateToken(config, queueParams, secretKey)
         isTokenValid = tokenValidationResult.isValid
 
         if(isTokenValid) then
             requestValidationResult = getValidTokenResult(config, queueParams, secretKey)
         else
-            requestValidationResult = getErrorResult(customerId, targetUrl, config, queueParams, tokenValidationResult.errorCode);
+            requestValidationResult = getErrorResult(
+                customerId, targetUrl, config, queueParams, tokenValidationResult.errorCode);
         end
     else
         requestValidationResult = getQueueResult(targetUrl, config, customerId);
-    end 
+    end
 
     if (state.isFound and not isTokenValid) then
         userInQueueStateCookieRepository.cancelQueueCookie(config.eventId, config.cookieDomain);
@@ -156,21 +163,24 @@ end
 svc.validateCancelRequest = function(targetUrl, cancelConfig, customerId, secretKey)
 	--we do not care how long cookie is valid while canceling cookie
 	local state = userInQueueStateCookieRepository.getState(cancelConfig.eventId, -1, secretKey, false)
-    if (state.isValid) then      
+    if (state.isValid) then
         local uriPath = "cancel/" .. customerId .. "/" .. cancelConfig.eventId .. "/"
         userInQueueStateCookieRepository.cancelQueueCookie(cancelConfig.eventId, cancelConfig.cookieDomain)
-        
+
         local rParam = ""
 		if (utils.toString(targetUrl) ~= "") then
 			rParam = "&r=" .. utils.urlEncode(targetUrl)
 		end
-        local query = getQueryString(customerId, cancelConfig.eventId, cancelConfig.version, cancelConfig.actionName, nil, nil) .. rParam
+        local query = getQueryString(
+            customerId, cancelConfig.eventId, cancelConfig.version, cancelConfig.actionName, nil, nil) .. rParam
         local redirectUrl = generateRedirectUrl(cancelConfig.queueDomain, uriPath, query)
-       		
-        return models.RequestValidationResult.create(models.ActionTypes.CancelAction, cancelConfig.eventId, 
-                                                    state.queueId, redirectUrl, state.redirectType, cancelConfig.actionName)        
+
+        return models.RequestValidationResult.create(
+            models.ActionTypes.CancelAction, cancelConfig.eventId,
+            state.queueId, redirectUrl, state.redirectType, cancelConfig.actionName)
     else
-        return models.RequestValidationResult.create(models.ActionTypes.CancelAction, cancelConfig.eventId, nil, nil, nil, cancelConfig.actionName)
+        return models.RequestValidationResult.create(
+            models.ActionTypes.CancelAction, cancelConfig.eventId, nil, nil, nil, cancelConfig.actionName)
     end
 end
 
@@ -178,7 +188,7 @@ svc.extendQueueCookie = function(eventId, cookieValidityMinutes, cookieDomain, s
 	userInQueueStateCookieRepository.reissueQueueCookie(eventId, cookieValidityMinutes, cookieDomain, secretKey)
 end
 
-svc.getIgnoreActionResult = function(actionName) 
+svc.getIgnoreActionResult = function(actionName)
 	return models.RequestValidationResult.create(models.ActionTypes.IgnoreAction, nil, nil, nil, nil, actionName)
 end
 

@@ -1,10 +1,10 @@
 local integrationEvaluator = require("IntegrationEvaluator")
 local iHelpers = require("KnownUserImplementationHelpers")
 
-function IntegrationEvaluatorTest()
-	local function test_getMatchedIntegrationConfig_OneTrigger_And_NotMatched()		
-		integrationConfig =
-		{ 
+local function IntegrationEvaluatorTest()
+	local function test_getMatchedIntegrationConfig_OneTrigger_And_NotMatched()
+		local integrationConfig =
+		{
 			Integrations =
 			{
 				{
@@ -36,24 +36,24 @@ function IntegrationEvaluatorTest()
 				}
 			}
 		}
-		
-		url = "http://test.tesdomain.com:8080/test?q=2"
-		assert( integrationEvaluator.getMatchedIntegrationConfig(integrationConfig, url, iHelpers.request) == nil )		
+
+		local url = "http://test.tesdomain.com:8080/test?q=2"
+		assert( integrationEvaluator.getMatchedIntegrationConfig(integrationConfig, url, iHelpers.request) == nil )
 	end
 	test_getMatchedIntegrationConfig_OneTrigger_And_NotMatched()
-	
+
 	local function test_getMatchedIntegrationConfig_OneTrigger_And_Matched()
-        iHelpers.request.getUnescapedCookieValue = function(name) 
-			if (name=="c2") then 
-				return "ddd" 
+        iHelpers.request.getUnescapedCookieValue = function(name)
+			if (name=="c2") then
+				return "ddd"
 			end
-			if (name=="c1") then 
-				return "Value1" 
+			if (name=="c1") then
+				return "Value1"
 			end
 		end
-    
-		integrationConfig =
-		{ 
+
+		local integrationConfig =
+		{
 			Integrations =
 			{
 				{
@@ -87,24 +87,27 @@ function IntegrationEvaluatorTest()
 			}
 		}
 
-        url = "http://test.tesdomain.com:8080/test?q=2"
-        assert( integrationEvaluator.getMatchedIntegrationConfig(integrationConfig, url, iHelpers.request)["Name"] == "integration1" )
+        local url = "http://test.tesdomain.com:8080/test?q=2"
+        assert( integrationEvaluator.getMatchedIntegrationConfig(
+			integrationConfig, url, iHelpers.request)["Name"] == "integration1" )
     end
 	test_getMatchedIntegrationConfig_OneTrigger_And_Matched()
-	
+
 	local function test_getMatchedIntegrationConfig_OneTrigger_And_NotMatched_UserAgent()
-        iHelpers.request.getUnescapedCookieValue = function(name) 
-			if (name=="c2") then 
-				return "ddd" 
+        iHelpers.request.getUnescapedCookieValue = function(name)
+			if (name=="c2") then
+				return "ddd"
 			end
-			if (name=="c1") then 
-				return "Value1" 
+			if (name=="c1") then
+				return "Value1"
 			end
 		end
-        iHelpers.request.getHeader = function(name) if (name == "user-agent") then return "bot.html google.com googlebot test" end end
-		
-		integrationConfig =
-		{ 
+		iHelpers.request.getHeader = function(name)
+			if (name == "user-agent") then return "bot.html google.com googlebot test" end
+		end
+
+		local integrationConfig =
+		{
 			Integrations =
 			{
 				{
@@ -145,24 +148,24 @@ function IntegrationEvaluatorTest()
 			}
 		}
 
-        url = "http://test.tesdomain.com:8080/test?q=2"        
+        local url = "http://test.tesdomain.com:8080/test?q=2"
         assert( integrationEvaluator.getMatchedIntegrationConfig(integrationConfig, url, iHelpers.request) == nil )
     end
 	test_getMatchedIntegrationConfig_OneTrigger_And_NotMatched_UserAgent()
-	
+
 	local function test_getMatchedIntegrationConfig_OneTrigger_And_NotMatched_HttpHeader()
-        iHelpers.request.getUnescapedCookieValue = function(name) 
-			if (name=="c2") then 
-				return "ddd" 
+        iHelpers.request.getUnescapedCookieValue = function(name)
+			if (name=="c2") then
+				return "ddd"
 			end
-			if (name=="c1") then 
-				return "Value1" 
+			if (name=="c1") then
+				return "Value1"
 			end
 		end
 		iHelpers.request.getHeader = function(name) if (name == "headertest") then return "abcd efg test gklm" end end
 
-		integrationConfig =
-		{ 
+		local integrationConfig =
+		{
 			Integrations =
 			{
 				{
@@ -204,16 +207,16 @@ function IntegrationEvaluatorTest()
 			}
 		}
 
-        url = "http://test.tesdomain.com:8080/test?q=2"        
+        local url = "http://test.tesdomain.com:8080/test?q=2"
         assert(integrationEvaluator.getMatchedIntegrationConfig(integrationConfig, url, iHelpers.request) == nil )
     end
 	test_getMatchedIntegrationConfig_OneTrigger_And_NotMatched_HttpHeader()
 
 	local function test_getMatchedIntegrationConfig_OneTrigger_Or_NotMatched()
-        iHelpers.request.getUnescapedCookieValue = function(name) return nil end
-		
-		integrationConfig =
-		{ 
+        iHelpers.request.getUnescapedCookieValue = function(_) return nil end
+
+		local integrationConfig =
+		{
 			Integrations =
 			{
 				{
@@ -247,16 +250,16 @@ function IntegrationEvaluatorTest()
 			}
 		}
 
-        url = "http://test.tesdomain.com:8080/test?q=2"
+        local url = "http://test.tesdomain.com:8080/test?q=2"
         assert(integrationEvaluator.getMatchedIntegrationConfig(integrationConfig, url, iHelpers.request) == nil )
     end
 	test_getMatchedIntegrationConfig_OneTrigger_Or_NotMatched()
 
 	local function test_getMatchedIntegrationConfig_OneTrigger_Or_Matched()
-        iHelpers.request.getUnescapedCookieValue = function(name) return nil end
+        iHelpers.request.getUnescapedCookieValue = function(_) return nil end
 
-		integrationConfig =
-		{ 
+		local integrationConfig =
+		{
 			Integrations =
 			{
 				{
@@ -289,17 +292,18 @@ function IntegrationEvaluatorTest()
 				}
 			}
 		}
-		
-        url = "http://test.tesdomain.com:8080/test?q=2"
-        assert( integrationEvaluator.getMatchedIntegrationConfig(integrationConfig, url, iHelpers.request)["Name"] == "integration1" )
+
+        local url = "http://test.tesdomain.com:8080/test?q=2"
+        assert( integrationEvaluator.getMatchedIntegrationConfig(
+			integrationConfig, url, iHelpers.request)["Name"] == "integration1" )
     end
 	test_getMatchedIntegrationConfig_OneTrigger_Or_Matched()
 
 	local function test_getMatchedIntegrationConfig_TwoTriggers_Matched()
-        iHelpers.request.getUnescapedCookieValue = function(name) return nil end
+        iHelpers.request.getUnescapedCookieValue = function(_) return nil end
 
-		integrationConfig =
-		{ 
+		local integrationConfig =
+		{
 			Integrations =
 			{
 				{
@@ -346,17 +350,18 @@ function IntegrationEvaluatorTest()
 				}
 			}
 		}
-  
-        url = "http://test.tesdomain.com:8080/test?q=2"
-        assert( integrationEvaluator.getMatchedIntegrationConfig(integrationConfig, url, iHelpers.request)["Name"] == "integration1" ) 
+
+        local url = "http://test.tesdomain.com:8080/test?q=2"
+        assert( integrationEvaluator.getMatchedIntegrationConfig(
+			integrationConfig, url, iHelpers.request)["Name"] == "integration1" )
     end
 	test_getMatchedIntegrationConfig_TwoTriggers_Matched()
 
 	local function test_getMatchedIntegrationConfig_ThreeIntegrationsInOrder_SecondMatched()
-        iHelpers.request.getUnescapedCookieValue = function(name) return nil end
+        iHelpers.request.getUnescapedCookieValue = function(_) return nil end
 
-		integrationConfig =
-		{ 
+		local integrationConfig =
+		{
 			Integrations =
 			{
 				{
@@ -422,8 +427,9 @@ function IntegrationEvaluatorTest()
 			}
 		}
 
-        url = "http://test.tesdomain.com:8080/test?q=2"
-        assert( integrationEvaluator.getMatchedIntegrationConfig(integrationConfig, url,iHelpers.request)["Name"] == "integration1" )
+        local url = "http://test.tesdomain.com:8080/test?q=2"
+        assert( integrationEvaluator.getMatchedIntegrationConfig(
+			integrationConfig, url,iHelpers.request)["Name"] == "integration1" )
     end
 	test_getMatchedIntegrationConfig_ThreeIntegrationsInOrder_SecondMatched()
 end

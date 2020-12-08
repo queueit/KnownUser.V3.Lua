@@ -1,6 +1,6 @@
 local comparisonOperatorHelper = require("ComparisonOperatorHelper")
 
-function ComparisonOperatorHelperTest_evaluate()
+local function ComparisonOperatorHelperTest_evaluate()
 	assert( comparisonOperatorHelper.evaluate("Equals", false, false, "test1", "test1",nil) )
 	assert( comparisonOperatorHelper.evaluate("Equals", false, false, "test1", "Test1",nil) == false )
 	assert( comparisonOperatorHelper.evaluate("Equals", false, true, "test1", "Test1",nil) )

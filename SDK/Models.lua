@@ -4,50 +4,50 @@ local models = {
 	QueueEventConfig = {
 		create = function()
 			local model = {
-				eventId,
-				layoutName,
-				culture,
-				queueDomain,
-				extendCookieValidity,
-				cookieValidityMinute,
-				cookieDomain,
-				version,
+				eventId = nil,
+				layoutName = nil,
+				culture = nil,
+				queueDomain = nil,
+				extendCookieValidity = nil,
+				cookieValidityMinute = nil,
+				cookieDomain = nil,
+				version = nil,
 				actionName = "unspecified",
 				getString = function(self)
 					return
-						"EventId:" .. utils.toString(self.eventId) .. 
-						"&Version:" .. utils.toString(self.version) .. 
+						"EventId:" .. utils.toString(self.eventId) ..
+						"&Version:" .. utils.toString(self.version) ..
 						"&QueueDomain:" .. utils.toString(self.queueDomain) ..
-						"&CookieDomain:" .. utils.toString(self.cookieDomain) .. 
-						"&ExtendCookieValidity:" .. utils.toString(self.extendCookieValidity) .. 
-						"&CookieValidityMinute:" .. utils.toString(self.cookieValidityMinute) .. 
-						"&LayoutName:" .. utils.toString(self.layoutName) .. 
+						"&CookieDomain:" .. utils.toString(self.cookieDomain) ..
+						"&ExtendCookieValidity:" .. utils.toString(self.extendCookieValidity) ..
+						"&CookieValidityMinute:" .. utils.toString(self.cookieValidityMinute) ..
+						"&LayoutName:" .. utils.toString(self.layoutName) ..
 						"&Culture:" .. utils.toString(self.culture) ..
 						"&ActionName:" .. utils.toString(self.actionName)
 				end
 			}
-	
-			return model		
+
+			return model
 		end
 	},
 	CancelEventConfig = {
 		create = function()
 			local model = {
-				eventId,
-				queueDomain,
-				cookieDomain,
-				version,
+				eventId = nil,
+				queueDomain = nil,
+				cookieDomain = nil,
+				version = nil,
 				actionName = "unspecified",
 				getString = function(self)
 					return
-						"EventId:" .. utils.toString(self.eventId) .. 
-						"&Version:" .. utils.toString(self.version) .. 
+						"EventId:" .. utils.toString(self.eventId) ..
+						"&Version:" .. utils.toString(self.version) ..
 						"&QueueDomain:" .. utils.toString(self.queueDomain) ..
 						"&CookieDomain:" .. utils.toString(self.cookieDomain) ..
 						"&ActionName:" .. utils.toString(self.actionName)
 				end
 			}
-	
+
 			return model
 		end
 	},
@@ -59,7 +59,7 @@ local models = {
 				queueId = queueId,
 				actionType = actionType,
 				redirectType = redirectType,
-				isAjaxResult,
+				isAjaxResult = false,
 				actionName = actionName,
 				doRedirect = function(self)
 					return utils.toString(self.redirectUrl) ~= ''
@@ -72,7 +72,7 @@ local models = {
 				end
 			}
 
-			return model			
+			return model
 		end
 	},
 	ActionTypes = {

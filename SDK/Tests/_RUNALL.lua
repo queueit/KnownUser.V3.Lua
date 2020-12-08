@@ -4,7 +4,7 @@ package.path = "Helpers/?/?.lua;" .. package.path
 package.path = "SDK/Tests/?.lua;" .. package.path
 
 -- implement helpers for unit test usage
-iHelpers = require("KnownUserImplementationHelpers")
+local iHelpers = require("KnownUserImplementationHelpers")
 iHelpers.hash.hmac_sha256_encode = function(message, key)
 	local sha2 = require("sha2")
     return sha2.hmac(sha2.sha256, key, message)

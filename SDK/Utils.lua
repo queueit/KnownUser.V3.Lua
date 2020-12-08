@@ -1,10 +1,10 @@
-local utils = 
+local utils =
 {
 	toString = function(v)
-		if (v == nil) then 
+		if (v == nil) then
 			return ""
 		end
-		
+
 		local vType = type(v)
 
 		if (vType == "string" or vType == "number") then
@@ -36,7 +36,7 @@ local utils =
 		return str
 	end,
 	explode = function(sep, inputstr)
-		local t = {} ; i = 1
+		local t = {}; local i = 1;
 		for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
 			t[i] = str
 			i = i + 1
@@ -62,10 +62,10 @@ local utils =
 		text = text:gsub("%[", "%%[")
 		text = text:gsub("%]", "%%]")
 		text = text:gsub("%^", "%%^")
-		text = text:gsub("%$", "%%$")		
+		text = text:gsub("%$", "%%$")
 		return text
 	end,
-	contains = function(self, text, match)		
+	contains = function(self, text, match)
 		match = self.escapeMagicChars(match)
 		return string.find(text, match) ~= nil
 	end,

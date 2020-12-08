@@ -4,7 +4,7 @@ local iHelpers = require("KnownUserImplementationHelpers")
 
 local queueUrlParams = {
 	extractQueueParams = function(queueitToken)
-		
+
 		if (utils.toString(queueitToken) == "") then
 			return nil
 		end
@@ -17,20 +17,20 @@ local queueUrlParams = {
 		local RedirectTypeKey = "rt"
 		local KeyValueSeparatorChar = "_"
 		local KeyValueSeparatorGroupChar = "~"
-		
+
 		-- Private functions
 		local function updateResult(paramNameValueArr, result)
 			if(paramNameValueArr[1] == TimeStampKey) then
 				local tsn = tonumber(paramNameValueArr[2])
-				if(tsn ~= nil) then 
-					result.timeStamp = tsn 
+				if(tsn ~= nil) then
+					result.timeStamp = tsn
 				end
 				return
 			end
 			if(paramNameValueArr[1] == CookieValidityMinutesKey) then
 				local cvn = tonumber(paramNameValueArr[2])
-				if(cvn ~= nil) then 
-					result.cookieValidityMinutes = cvn 
+				if(cvn ~= nil) then
+					result.cookieValidityMinutes = cvn
 				end
 				return
 			end
@@ -40,7 +40,7 @@ local queueUrlParams = {
 			end
 			if(paramNameValueArr[1] == ExtendableCookieKey) then
 				if(paramNameValueArr[2] ~= nil) then
-					result.extendableCookie = string.lower(paramNameValueArr[2]) == "true"	
+					result.extendableCookie = string.lower(paramNameValueArr[2]) == "true"
 				else
 					result.extendableCookie = false
 				end
@@ -75,39 +75,43 @@ local queueUrlParams = {
 
 		local paramsNameValueList = utils.explode(KeyValueSeparatorGroupChar, result.queueITToken)
 
-		for i,pNameValue in pairs(paramsNameValueList) do
+		for _,pNameValue in pairs(paramsNameValueList) do
 			local paramNameValueArr = utils.explode(KeyValueSeparatorChar, pNameValue)
-			c = utils.tableLength(paramNameValueArr)
-			if ( c == 2) then
+			local c = utils.tableLength(paramNameValueArr)
+			if (c == 2) then
 				updateResult(paramNameValueArr, result)
 			end
 		end
-		local replacingHash = KeyValueSeparatorGroupChar .. HashCodeKey .. KeyValueSeparatorChar .. utils.escapeMagicChars(result.hashCode)
-		result.queueITTokenWithoutHash = result.queueITToken:gsub(replacingHash, "")				
+		local replacingHash =
+			KeyValueSeparatorGroupChar .. HashCodeKey ..
+			KeyValueSeparatorChar .. utils.escapeMagicChars(result.hashCode)
+		result.queueITTokenWithoutHash = result.queueITToken:gsub(replacingHash, "")
 		return result
 	end
 }
 
 local connectorDiagnostics = {
 	verify = function(customerId, secretKey, queueitToken)
-		local function setStateWithTokenError(diagnostics, customerId, errorCode)
-			diagnostics.hasError = true
-			diagnostics.validationResult = models.RequestValidationResult.create(
-				"ConnectorDiagnosticsRedirect", 
-				nil, nil, 
-				"https://" .. customerId .. ".api2.queue-it.net/" .. customerId .. "/diagnostics/connector/error/?code=" .. errorCode, 
+		local function setStateWithTokenError(_diagnostics, _customerId, _errorCode)
+			_diagnostics.hasError = true
+			_diagnostics.validationResult = models.RequestValidationResult.create(
+				"ConnectorDiagnosticsRedirect",
+				nil, nil,
+				"https://" .. _customerId ..
+				".api2.queue-it.net/" .. _customerId ..
+				"/diagnostics/connector/error/?code=" .. _errorCode,
 				nil, nil)
 		end
 
-		local function setStateWithSetupError(diagnostics)
-			diagnostics.hasError = true
-			diagnostics.validationResult = models.RequestValidationResult.create(
-				"ConnectorDiagnosticsRedirect", 
-				nil, nil, 
-				"https://api2.queue-it.net/diagnostics/connector/error/?code=setup", 
+		local function setStateWithSetupError(_diagnostics)
+			_diagnostics.hasError = true
+			_diagnostics.validationResult = models.RequestValidationResult.create(
+				"ConnectorDiagnosticsRedirect",
+				nil, nil,
+				"https://api2.queue-it.net/diagnostics/connector/error/?code=setup",
 				nil, nil)
 		end
-		
+
 		local diagnostics = {
 			isEnabled = false,
 			hasError = false,
@@ -135,7 +139,7 @@ local connectorDiagnostics = {
 
 		local calculatedHash = iHelpers.hash.hmac_sha256_encode(qParams.queueITTokenWithoutHash, secretKey)
 		if (string.upper(calculatedHash) ~= string.upper(qParams.hashCode)) then
-			setStateWithTokenError(diagnostics, customerId, "hash")				
+			setStateWithTokenError(diagnostics, customerId, "hash")
 			return diagnostics
 		end
 
