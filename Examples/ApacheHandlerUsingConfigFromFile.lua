@@ -37,13 +37,11 @@
 --      LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"
 --      LuaPackagePath "{APP_FOLDER}/Handlers/?.lua"
 --
--- AUTHOR: Simon Studer (mail@studer.si)
+-- AUTHOR: Simon Studer (mail@studer.si), Frederik Williams (frwi@queue-it.com)
 --
 -- LICENSE: Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
 --
--- VERSION: 1 (2020-01-10)
 ----------------------------------------------------------------------------------------------------
-
 
 local DEBUG_TAG = "ApacheHandlerUsingConfigFromFile.lua"
 
@@ -81,12 +79,24 @@ function handle(r)
         local co_httpOnly = r.subprocess_env["QUEUEIT_COOKIE_OPTIONS_HTTPONLY"]
         local co_secure = r.subprocess_env["QUEUEIT_COOKIE_OPTIONS_SECURE"]
 
-        r:debug(string.format("[%s] Environment variable QUEUEIT_CUSTOMER_ID: %s", DEBUG_TAG, customerId))
-        r:debug(string.format("[%s] Environment variable QUEUEIT_SECRET_KEY: %s", DEBUG_TAG, secretKey))
-        r:debug(string.format("[%s] Environment variable QUEUEIT_INT_CONF_FILE: %s", DEBUG_TAG, intConfFile))
-        r:debug(string.format("[%s] Environment variable QUEUEIT_ERROR_CODE: %s", DEBUG_TAG, errorCode))
-        r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_HTTPONLY: %s", DEBUG_TAG, co_httpOnly))
-        r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_SECURE: %s", DEBUG_TAG, co_secure))
+        if customerId ~= nil then
+            r:debug(string.format("[%s] Environment variable QUEUEIT_CUSTOMER_ID: %s", DEBUG_TAG, customerId))
+        end
+        if secretKey ~= nil then
+            r:debug(string.format("[%s] Environment variable QUEUEIT_SECRET_KEY: %s", DEBUG_TAG, secretKey))
+        end
+        if intConfFile ~= nil then
+            r:debug(string.format("[%s] Environment variable QUEUEIT_INT_CONF_FILE: %s", DEBUG_TAG, intConfFile))
+        end
+        if errorCode ~= nil then
+            r:debug(string.format("[%s] Environment variable QUEUEIT_ERROR_CODE: %s", DEBUG_TAG, errorCode))
+        end
+        if co_httpOnly ~= nil then
+            r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_HTTPONLY: %s", DEBUG_TAG, co_httpOnly))
+        end
+        if co_secure ~= nil then
+            r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_SECURE: %s", DEBUG_TAG, co_secure))
+        end
 
         assert(customerId ~= nil, "customerId invalid")
         assert(secretKey ~= nil, "secretKey invalid")
