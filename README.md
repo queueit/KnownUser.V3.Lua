@@ -56,6 +56,9 @@ When the integration configuration changes, this file needs to be updated.
 Note that setting a custom error response code using `QUEUEIT_ERROR_CODE` is optional.
 If no error code is set, the handler declines to act if an error occurs and the request is let through.
 
+*[ApacheHandlerUsingConfigFromFile](Examples/ApacheHandlerUsingConfigFromFile.lua)* also supports cookie flags like `HttpOnly` and `Secure`. 
+Please refer to details inside the lua file on how to enable this (and when NOT to).
+
 Then, add the following lines to your Apache httpd configuration, filling in the placeholders denoted by braces (e.g. `{CUSTOMER_ID}`):
 
 ```apache2
