@@ -19,13 +19,13 @@ local function createCookieValue(eventId, queueId, fixedCookieValidityMinutes, r
 	local cookieValue = "EventId=" .. eventId ..
 		"&QueueId=" .. queueId .. fixedCookieValidityMinutesPart ..
 		"&RedirectType=" .. redirectType .. "&IssueTime=" .. issueTime .. "&Hash=" .. hashValue
-    return cookieValue
+	return cookieValue
 end
 
 local function getCookieNameValueMap(cookieValue)
 	local result = { }
 
-    local cookieNameValues = utils.explode("&", cookieValue)
+	local cookieNameValues = utils.explode("&", cookieValue)
 
 	for _, cookieNameValue in pairs(cookieNameValues) do
 		local arr = utils.explode("=", cookieNameValue)
@@ -57,7 +57,7 @@ local function isCookieValid(secretKey, cookieNameValueMap, eventId, cookieValid
 	local fixedCookieValidityMinutes = ""
 	if (cookieNameValueMap["FixedValidityMins"] ~= nil) then
 		fixedCookieValidityMinutes = cookieNameValueMap["FixedValidityMins"]
-    end
+	end
 
 	local hashValue = generateHash(
 		cookieNameValueMap["EventId"],
@@ -67,11 +67,11 @@ local function isCookieValid(secretKey, cookieNameValueMap, eventId, cookieValid
 		cookieNameValueMap["IssueTime"],
 		secretKey)
 
-    if (hashValue ~= cookieNameValueMap["Hash"]) then
+	if (hashValue ~= cookieNameValueMap["Hash"]) then
 		return false
-    end
+	end
 
-    if (string.lower(eventId) ~= string.lower(cookieNameValueMap["EventId"])) then
+	if (string.lower(eventId) ~= string.lower(cookieNameValueMap["EventId"])) then
 		return false
 	end
 
@@ -85,9 +85,9 @@ local function isCookieValid(secretKey, cookieNameValueMap, eventId, cookieValid
 		if (expirationTime < os.time()) then
 			return false
 		end
-    end
+	end
 
-    return true
+	return true
 end
 -- END Private functions
 
@@ -114,7 +114,7 @@ repo.getCookieKey = function(eventId)
 end
 
 repo.cancelQueueCookie = function(eventId, cookieDomain)
-    local cookieKey = repo.getCookieKey(eventId)
+	local cookieKey = repo.getCookieKey(eventId)
 	iHelpers.response.setCookie(cookieKey, "deleted", 1, cookieDomain)
 end
 
@@ -152,21 +152,21 @@ repo.getState = function(eventId, cookieValidityMinutes, secretKey, validateTime
 end
 
 repo.reissueQueueCookie = function(eventId, cookieValidityMinutes, cookieDomain, secretKey)
-    local cookieKey = repo.getCookieKey(eventId)
-    if (iHelpers.request.getUnescapedCookieValue(cookieKey) == nil) then
+	local cookieKey = repo.getCookieKey(eventId)
+	if (iHelpers.request.getUnescapedCookieValue(cookieKey) == nil) then
 		return
-    end
+	end
 	local cookieNameValueMap = getCookieNameValueMap(iHelpers.request.getUnescapedCookieValue(cookieKey))
 
 	if (isCookieValid(secretKey, cookieNameValueMap, eventId, cookieValidityMinutes, true) == false) then
-	    return
-    end
+		return
+	end
 	local fixedCookieValidityMinutes = ""
 	if (cookieNameValueMap["FixedValidityMins"] ~= nil) then
-	    fixedCookieValidityMinutes = cookieNameValueMap["FixedValidityMins"]
-    end
+		fixedCookieValidityMinutes = cookieNameValueMap["FixedValidityMins"]
+	end
 
-    local cookieValue = createCookieValue(
+	local cookieValue = createCookieValue(
 		eventId,
 		cookieNameValueMap["QueueId"],
 		fixedCookieValidityMinutes,
@@ -178,7 +178,7 @@ end
 
 repo.store = function(eventId, queueId, fixedCookieValidityMinutes, cookieDomain, redirectType, secretKey)
 	local cookieKey = repo.getCookieKey(eventId)
-    local cookieValue = createCookieValue(
+	local cookieValue = createCookieValue(
 		eventId, queueId, utils.toString(fixedCookieValidityMinutes), redirectType, secretKey)
 	iHelpers.response.setCookie(cookieKey, cookieValue, os.time() + (24 * 60 * 60), cookieDomain)
 end

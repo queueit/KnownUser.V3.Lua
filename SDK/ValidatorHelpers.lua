@@ -123,6 +123,26 @@ local model = {
 				triggerPart["ValueToCompare"],
 				triggerPart["ValuesToCompare"])
 		end
+	},
+	RequestBodyValidatorHelper = {
+		evaluate = function(triggerPart, request)
+			if (triggerPart == nil or
+				triggerPart["Operator"] == nil or
+				triggerPart["IsNegative"] == nil or
+				triggerPart["IsIgnoreCase"] == nil) then
+				return false
+			end
+
+			local requestBody = request.getBody()
+
+			return comparisonOperatorHelper.evaluate(
+				triggerPart["Operator"],
+				triggerPart["IsNegative"],
+				triggerPart["IsIgnoreCase"],
+				requestBody,
+				triggerPart["ValueToCompare"],
+				triggerPart["ValuesToCompare"])
+		end
 	}
 }
 

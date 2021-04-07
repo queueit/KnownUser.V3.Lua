@@ -328,3 +328,26 @@ local function HttpHeaderValidatorHelperTest_evaluate()
     assert( validatorHelpers.HttpHeaderValidatorHelper.evaluate(triggerPart, iHelpers.request) == false)
 end
 HttpHeaderValidatorHelperTest_evaluate()
+
+local function RequestBodyValidatorHelperTest_evaluate()
+	local triggerPart = {}
+	triggerPart["Operator"] = "Contains"
+	triggerPart["IsIgnoreCase"] = true
+	triggerPart["IsNegative"] = false
+	triggerPart["ValueToCompare"] = "t1"
+	iHelpers.request.getBody = function()
+		return "post with t1"
+	end
+	assert( validatorHelpers.RequestBodyValidatorHelper.evaluate(triggerPart, iHelpers.request) )
+
+	triggerPart = {}
+	triggerPart["Operator"] = "Contains"
+	triggerPart["IsIgnoreCase"] = true
+	triggerPart["IsNegative"] = false
+	triggerPart["ValueToCompare"] = "t2"
+	iHelpers.request.getBody = function()
+		return "post with t1"
+	end
+	assert( validatorHelpers.RequestBodyValidatorHelper.evaluate(triggerPart, iHelpers.request) == false)
+end
+RequestBodyValidatorHelperTest_evaluate()

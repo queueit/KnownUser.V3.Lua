@@ -212,6 +212,59 @@ local function IntegrationEvaluatorTest()
     end
 	test_getMatchedIntegrationConfig_OneTrigger_And_NotMatched_HttpHeader()
 
+	local function test_getMatchedIntegrationConfig_OneTrigger_And_Matched_RequestBody()
+        iHelpers.request.getBody = function()
+			return "test body test request"
+		end
+
+		local integrationConfig =
+		{
+			Integrations =
+			{
+				{
+					Name = "integration1",
+					Triggers =
+					{
+						{
+							LogicalOperator = "And",
+							TriggerParts =
+							{
+								{
+									CookieName = "c1",
+									Operator = "Equals",
+									ValueToCompare = "value1",
+									ValidatorType = "CookieValidator",
+									IsIgnoreCase = true,
+									IsNegative = false
+								},
+								{
+									UrlPart = "PageUrl",
+									ValidatorType = "UrlValidator",
+									ValueToCompare = "test",
+									Operator = "Contains",
+									IsIgnoreCase = false,
+									IsNegative = false
+								},
+								{
+									ValidatorType = "RequestBodyValidator",
+									ValueToCompare = "test body",
+									Operator = "Contains",
+									IsIgnoreCase = true,
+									IsNegative = false
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+        local url = "http://test.tesdomain.com:8080/test?q=2"
+        assert(integrationEvaluator.getMatchedIntegrationConfig(
+			integrationConfig, url, iHelpers.request).Name == "integration1")
+    end
+	test_getMatchedIntegrationConfig_OneTrigger_And_Matched_RequestBody()
+
 	local function test_getMatchedIntegrationConfig_OneTrigger_Or_NotMatched()
         iHelpers.request.getUnescapedCookieValue = function(_) return nil end
 

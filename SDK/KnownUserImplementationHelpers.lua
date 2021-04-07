@@ -13,6 +13,10 @@ local iHelpers =
 		getHeader = function(_)
 			error("Not implemented : request.getHeader(name)")
 		end,
+		-- returns: string | nil
+		getBody = function(_)
+			error("Not implemented : request.getBody()")
+		end,
 		-- arguments: name -> name of cookie
 		-- returns: the unescaped (url decoded) value ( string | nil ) in the cookie found by name
 		getUnescapedCookieValue = function(_)

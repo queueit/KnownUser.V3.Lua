@@ -21,6 +21,9 @@ local model = {
 			if (_triggerPart["ValidatorType"] == "HttpHeaderValidator") then
 				return validatorHelpers.HttpHeaderValidatorHelper.evaluate(_triggerPart, _request)
 			end
+			if (_triggerPart["ValidatorType"] == "RequestBodyValidator") then
+				return validatorHelpers.RequestBodyValidatorHelper.evaluate(_triggerPart, _request)
+			end
 
 			return false
 		end

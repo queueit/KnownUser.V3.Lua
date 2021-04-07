@@ -24,11 +24,24 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 
 	iHelpers.hash.hmac_sha256_encode = function(message, key)
 		local sha2 = require("sha2")
-        return sha2.hmac(sha2.sha256, key, message)
+		return sha2.hmac(sha2.sha256, key, message)
 	end
 
 	iHelpers.request.getHeader = function(name)
 		return request_rec.headers_in[name]
+	end
+
+	iHelpers.request.getBody = function()
+		local reqBody = ""
+		-- Out of memory error will be raised,
+		-- when trying to read an empty request body. 
+		-- Therefore wrap this in a pcall to ignore that scenario.
+		pcall(
+			function()
+				reqBody = request_rec:requestbody()
+			end
+		)
+		return reqBody
 	end
 
 	iHelpers.request.getUnescapedCookieValue = function(name)
@@ -129,15 +142,15 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 	if (isIntegrationConfig) then
 		validationResult = knownUser.validateRequestByIntegrationConfig(currentUrlWithoutQueueitToken, queueitToken, config, customerId, secretKey)
 	else
-	    validationResult = knownUser.resolveQueueRequestByLocalConfig(currentUrlWithoutQueueitToken, queueitToken, config, customerId, secretKey)
+		validationResult = knownUser.resolveQueueRequestByLocalConfig(currentUrlWithoutQueueitToken, queueitToken, config, customerId, secretKey)
 	end
 
 	if (validationResult:doRedirect()) then
-		--Adding no cache headers to prevent browsers to cache requests
-	    request_rec.err_headers_out["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
-	    request_rec.err_headers_out["Pragma"] = "no-cache"
-	    request_rec.err_headers_out["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
-	    --end
+		-- Adding no cache headers to prevent browsers to cache requests
+		request_rec.err_headers_out["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+		request_rec.err_headers_out["Pragma"] = "no-cache"
+		request_rec.err_headers_out["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
+		-- end
 
 		if (validationResult.isAjaxResult) then
 			request_rec.err_headers_out[validationResult.getAjaxQueueRedirectHeaderKey()] = validationResult:getAjaxRedirectUrl()
@@ -157,7 +170,7 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 end
 
 aHandler.handleByIntegrationConfig = function(customerId, secretKey, integrationConfigJson, request_rec)
-   return handle(customerId, secretKey, integrationConfigJson, true, request_rec)
+	return handle(customerId, secretKey, integrationConfigJson, true, request_rec)
 end
 
 aHandler.handleByLocalConfig = function(customerId, secretKey, queueEventConfig, request_rec)

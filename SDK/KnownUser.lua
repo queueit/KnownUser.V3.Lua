@@ -19,12 +19,12 @@ end
 
 local function logMoreRequestDetails(debugEntries)
 	debugEntries["ServerUtcTime"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
-    debugEntries["RequestIP"] = iHelpers.request.getUserHostAddress()
-    debugEntries["RequestHttpHeader_Via"] = utils.toString(iHelpers.request.getHeader('via'))
-    debugEntries["RequestHttpHeader_Forwarded"] = utils.toString(iHelpers.request.getHeader('forwarded'))
-    debugEntries["RequestHttpHeader_XForwardedFor"] = utils.toString(iHelpers.request.getHeader('x-forwarded-for'))
-    debugEntries["RequestHttpHeader_XForwardedHost"] = utils.toString(iHelpers.request.getHeader('x-forwarded-host'))
-    debugEntries["RequestHttpHeader_XForwardedProto"] = utils.toString(iHelpers.request.getHeader('x-forwarded-proto'))
+	debugEntries["RequestIP"] = iHelpers.request.getUserHostAddress()
+	debugEntries["RequestHttpHeader_Via"] = utils.toString(iHelpers.request.getHeader('via'))
+	debugEntries["RequestHttpHeader_Forwarded"] = utils.toString(iHelpers.request.getHeader('forwarded'))
+	debugEntries["RequestHttpHeader_XForwardedFor"] = utils.toString(iHelpers.request.getHeader('x-forwarded-for'))
+	debugEntries["RequestHttpHeader_XForwardedHost"] = utils.toString(iHelpers.request.getHeader('x-forwarded-host'))
+	debugEntries["RequestHttpHeader_XForwardedProto"] = utils.toString(iHelpers.request.getHeader('x-forwarded-proto'))
 end
 
 local function setDebugCookie(debugEntries)
@@ -45,7 +45,7 @@ local function generateTargetUrl(originalTargetUrl)
 		local headerValue = iHelpers.request.getHeader(QUEUEIT_AJAX_HEADER_KEY)
 		return utils.urlDecode(headerValue)
 	else
-        return originalTargetUrl
+		return originalTargetUrl
 	end
 end
 
@@ -95,7 +95,7 @@ local function cancelRequestByLocalConfig(
 	targetUrl = generateTargetUrl(targetUrl)
 
 	if (isDebug) then
-        local cancelConfigValue = "NULL"
+		local cancelConfigValue = "NULL"
 		if (cancelConfig ~= nil) then
 			cancelConfigValue = cancelConfig:getString()
 		end
@@ -109,7 +109,7 @@ local function cancelRequestByLocalConfig(
 		debugEntries["CancelConfig"] = cancelConfigValue
 
 		logMoreRequestDetails(debugEntries)
-    end
+	end
 
 	assert(utils.toString(targetUrl) ~= "", "targetUrl can not be nil or empty.")
 	assert(utils.toString(customerId) ~= "", "customerId can not be nil or empty.")
@@ -118,9 +118,9 @@ local function cancelRequestByLocalConfig(
 	assert(utils.toString(cancelConfig.eventId) ~= "", "eventId from cancelConfig can not be nil or empty.")
 	assert(utils.toString(cancelConfig.queueDomain) ~= "", "queueDomain from cancelConfig can not be nil or empty.")
 
-    local result = userInQueueService.validateCancelRequest(targetUrl, cancelConfig, customerId, secretKey)
-    result.isAjaxResult = isQueueAjaxCall()
-    return result
+	local result = userInQueueService.validateCancelRequest(targetUrl, cancelConfig, customerId, secretKey)
+	result.isAjaxResult = isQueueAjaxCall()
+	return result
 end
 -- END Private functions
 
@@ -163,20 +163,20 @@ end
 
 ku.validateRequestByIntegrationConfig = function(
 	currentUrlWithoutQueueITToken, queueitToken, integrationConfigJson, customerId, secretKey)
-    -- Private functions
+	-- Private functions
 	local function handleQueueAction(
 		_currentUrlWithoutQueueITToken, _queueitToken, _customerIntegration,
 		_customerId, _secretKey, _matchedConfig, _debugEntries, _isDebug)
 
 		local eventConfig = models.QueueEventConfig.create()
-        local targetUrl
-        eventConfig.eventId = _matchedConfig["EventId"]
-        eventConfig.queueDomain = _matchedConfig["QueueDomain"]
-        eventConfig.layoutName = _matchedConfig["LayoutName"]
+		local targetUrl
+		eventConfig.eventId = _matchedConfig["EventId"]
+		eventConfig.queueDomain = _matchedConfig["QueueDomain"]
+		eventConfig.layoutName = _matchedConfig["LayoutName"]
 		eventConfig.culture = _matchedConfig["Culture"]
-        eventConfig.cookieDomain = _matchedConfig["CookieDomain"]
-        eventConfig.extendCookieValidity = _matchedConfig["ExtendCookieValidity"]
-        eventConfig.cookieValidityMinute = _matchedConfig["CookieValidityMinute"]
+		eventConfig.cookieDomain = _matchedConfig["CookieDomain"]
+		eventConfig.extendCookieValidity = _matchedConfig["ExtendCookieValidity"]
+		eventConfig.cookieValidityMinute = _matchedConfig["CookieValidityMinute"]
 		eventConfig.version = _customerIntegration["Version"]
 		eventConfig.actionName = _matchedConfig["Name"]
 
@@ -187,11 +187,11 @@ ku.validateRequestByIntegrationConfig = function(
 			if (_matchedConfig["RedirectLogic"] == "EventTargetUrl") then
 				targetUrl = ""
 			else
-                targetUrl = generateTargetUrl(_currentUrlWithoutQueueITToken)
+				targetUrl = generateTargetUrl(_currentUrlWithoutQueueITToken)
 			end
 		end
 
-        return resolveQueueRequestByLocalConfig(
+		return resolveQueueRequestByLocalConfig(
 			targetUrl, _queueitToken, eventConfig, _customerId, _secretKey, _debugEntries, _isDebug)
 	end
 
@@ -200,15 +200,15 @@ ku.validateRequestByIntegrationConfig = function(
 		_customerId, _secretKey, _matchedConfig, _debugEntries, _isDebug)
 
 		local cancelEventConfig = models.CancelEventConfig.create()
-        cancelEventConfig.eventId = _matchedConfig["EventId"]
-        cancelEventConfig.queueDomain = _matchedConfig["QueueDomain"]
-        cancelEventConfig.cookieDomain = _matchedConfig["CookieDomain"]
+		cancelEventConfig.eventId = _matchedConfig["EventId"]
+		cancelEventConfig.queueDomain = _matchedConfig["QueueDomain"]
+		cancelEventConfig.cookieDomain = _matchedConfig["CookieDomain"]
 		cancelEventConfig.version = _customerIntegration["Version"]
 		cancelEventConfig.actionName = _matchedConfig["Name"]
 
 		return cancelRequestByLocalConfig(
 			_currentUrlWithoutQueueITToken, _queueitToken, cancelEventConfig, _customerId, _secretKey, _debugEntries, _isDebug)
-    end
+	end
 	-- END Private functions
 
 	local debugEntries = {}
