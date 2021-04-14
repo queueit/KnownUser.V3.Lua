@@ -1,4 +1,6 @@
-# Implementation
+# Apache Lua Connector
+
+## Implementation
 
 A quick way to get started is to use the ready-made example *[ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua)* using Apache httpd handler.
 It ships with the SDK and allows for an easy setup without having to implement a custom Lua handler.
@@ -33,9 +35,9 @@ LuaPackagePath "{APP_FOLDER}/Handlers/?.lua"
 - {APP_FOLDER} = Apache www folder where your app/integration is located. Ex. 'C:/wamp64/www/lua'. Make sure SDK, Handlers and Helpers folders (incl. content) are copied here. 
 - {URI_PATTERN} = Pattern used to match which URLs should go through the handler. https://httpd.apache.org/docs/trunk/mod/mod_lua.html#luamaphandler
 
-# Alternative Implementation
+## Alternative Implementation
 
-## Queue configuration
+### Queue configuration
 As an alternative to the above, you can specify the configuration in code without using the Trigger/Action paradigm. 
 In this case it is important *only to queue-up page requests* and not requests for resources. 
 This can be done by adding custom filtering logic before calling the `kuHandler.handleByLocalConfig()` method. 
