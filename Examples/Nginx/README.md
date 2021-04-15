@@ -26,7 +26,8 @@ server {
         -- Please use this for testing / PoC etc., e.g. not on production environment.
         -- For production / final integration you need to decide where to store and load this file. 
         -- Could be a caching layer, environment variable, database ect.
-        -- It's important that the selected option is fast, not causing any performance bottlenecks because the file would be loaded on each request.
+        -- It's important that the selected option is fast, 
+        -- not causing any performance bottlenecks because the file would be loaded on each request.
         local integrationConfigFilePath = "./usr/queueit/integrationconfig.json"
         local integrationConfigFile = io.open(integrationConfigFilePath, "rb")
         local integrationConfigJson = integrationConfigFile:read("*all")
