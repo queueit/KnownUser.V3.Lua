@@ -6,7 +6,9 @@
 
 ## Implementation
 
-Copy `KnownUserNginxHandler.lua` and folders (`SDK` and `Helpers`) incl. their content to your NGINX filesystem (in the following example we have added it to `usr/queueit`).
+NOTE: The following implementation steps have been developed and tested using this [Docker image](https://github.com/fabiocicerchia/nginx-lua).
+
+Copy [KnownUserNginxHandler.lua](https://github.com/queueit/KnownUser.V3.Lua/blob/master/Handlers/KnownUserNginxHandler.lua) and folders ([SDK](https://github.com/queueit/KnownUser.V3.Lua/tree/master/SDK) and [Helpers](https://github.com/queueit/KnownUser.V3.Lua/tree/master/Helpers)) incl. their content to your NGINX filesystem (in the following example we have added it to `usr/queueit`).
 
 Then update/add `lua_package_path` in your `nginx.conf` to include the new path (keep `;;` in the end which means default path):
 
@@ -45,7 +47,7 @@ server {
 ```
 In this example `rewrite_by_lua_block` have been added to default location `\` but you must decide what makes sense in your case.
 
-Please note the comments in the code below about providing `integrationconfig.json` and replace `CUSTOMER_ID` and `SECRET_KEY` with correct credentials found in GO Queue-it platform.
+Please note the comments in the code about providing `integrationconfig.json` and replacing `CUSTOMER_ID` and `SECRET_KEY` with correct credentials located in GO Queue-it platform.
 
 ### Request body trigger (advanced)
 Nginx handler (incl. Lua SDK) supports triggering on request body content. Example could be a POST call with specific item ID where you want end-users to queue up for.
@@ -55,8 +57,11 @@ When enabled you also need to add extra settings to `location` in `conf.d/defaul
 ```
 location / {
   ...
-  lua_need_request_body on; # enabling reading of request body
-  client_body_buffer_size 64k; # ensure large buffer for requst body (PLEASE DECIDE WHAT BUFFER SIZE IS RELEVANT IN YOUR CASE)
+  # enabling reading of request body
+  lua_need_request_body on; 
+  
+  # ensure large buffer for requst body (PLEASE DECIDE WHAT BUFFER SIZE IS RELEVANT IN YOUR CASE)
+  client_body_buffer_size 64k; 
   ...
 }
 ```
