@@ -47,7 +47,7 @@ server {
 In this example `rewrite_by_lua_block` have been added to default location `/` but you must decide what makes sense in your case.
 Especially excluding any static content you don't want queue-it protection triggering on. This could be images (.png, .jpg), style (.css) and pages (.html).  
 
-Please note the comments in the code about providing `integrationconfig.json` and replacing `CUSTOMER_ID` and `SECRET_KEY` with correct credentials located in GO Queue-it platform.
+Please note the comments in the code about providing `integrationconfig.json` ([read more](https://github.com/queueit/KnownUser.V3.Lua#1-providing-the-queue-configuration)) and replacing `CUSTOMER_ID` and `SECRET_KEY` with correct credentials located in GO Queue-it platform.
 
 ### Request body trigger (advanced)
 Nginx handler (incl. Lua SDK) supports triggering on request body content. Example could be a POST call with specific item ID where you want end-users to queue up for.
