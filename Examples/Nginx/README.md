@@ -2,10 +2,6 @@
 
 ## Implementation
 
-# Nginx Lua Connector
-
-## Implementation
-
 NOTE: The following implementation steps have been developed and tested using this [Docker image](https://github.com/fabiocicerchia/nginx-lua).
 
 Copy [KnownUserNginxHandler.lua](https://github.com/queueit/KnownUser.V3.Lua/blob/master/Handlers/KnownUserNginxHandler.lua) and folders ([SDK](https://github.com/queueit/KnownUser.V3.Lua/tree/master/SDK) and [Helpers](https://github.com/queueit/KnownUser.V3.Lua/tree/master/Helpers)) incl. their content to your NGINX filesystem (in the following example we have added it to `usr/queueit`).
@@ -45,7 +41,7 @@ server {
     }
 }
 ```
-In this example `rewrite_by_lua_block` have been added to default location `\` but you must decide what makes sense in your case.
+In this example `rewrite_by_lua_block` have been added to default location `/` but you must decide what makes sense in your case.
 
 Please note the comments in the code about providing `integrationconfig.json` and replacing `CUSTOMER_ID` and `SECRET_KEY` with correct credentials located in GO Queue-it platform.
 
