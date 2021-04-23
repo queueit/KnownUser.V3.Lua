@@ -70,7 +70,7 @@ NOTE: In this example `rewrite_by_lua_block` directive was added to default loca
 
 ### 4) Provide the configuration file
 
-The above code requires you to provide the `integrationconfig.json` file which contains the configuration you create on the Queue-it GO platform ([more info here](https://github.com/queueit/KnownUser.V3.Lua#1-providing-the-queue-configuration)). There are various ways to provide this file. Please read the [specific documentation here](https://github.com/queueit/KnownUser.V3.Lua/tree/master/Documentation).
+The above code requires you to provide the `integrationconfig.json` file which contains the configuration you create on the Queue-it GO platform ([more info here](../../README.md#1-providing-the-queue-configuration)). There are various ways to provide this file. Please read the [specific documentation here](../../Documentation).
 
 
 ## Request body trigger (advanced)
