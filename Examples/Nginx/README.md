@@ -10,12 +10,12 @@ NOTES:
 ### 1. Copy the necessary files to your NGINX filesystem
 
 Copy the following two folders from this repository to your NGINX filesystem:
-- [SDK](https://github.com/queueit/KnownUser.V3.Lua/tree/master/SDK) -> `./usr/queueit/SDK`
-- [Helpers](https://github.com/queueit/KnownUser.V3.Lua/tree/master/Helpers) -> `./usr/queueit/Helpers`
+- [SDK](../../SDK) -> `./usr/queueit/SDK`
+- [Helpers](../../Helpers) -> `./usr/queueit/Helpers`
 
 Copy the main handler script:
 
-- [Handlers/KnownUserNginxHandler.lua](https://github.com/queueit/KnownUser.V3.Lua/blob/master/Handlers/KnownUserNginxHandler.lua) -> `./usr/queueit/KnownUserNginxHandler.lua`
+- [Handlers/KnownUserNginxHandler.lua](../../Handlers/KnownUserNginxHandler.lua) -> `./usr/queueit/KnownUserNginxHandler.lua`
 
 
 ### 2. Update the package paths
@@ -70,7 +70,7 @@ NOTE: In this example `rewrite_by_lua_block` directive was added to default loca
 
 ### 4) Provide the configuration file
 
-The above code requires you to provide the `integrationconfig.json` file which contains the configuration you create on the Queue-it GO platform ([more info here](../../README.md#1-providing-the-queue-configuration)). There are various ways to provide this file. Please read the [specific documentation here](../../Documentation).
+The above code requires you to provide the `integrationconfig.json` file which contains the configuration you create on the Queue-it GO platform ([more info here](../../README.md#1-providing-the-queue-configuration)). There are various ways to provide this file. Please read the [specific documentation here](../../Documentation/README.md).
 
 
 ## Request body trigger (advanced)
@@ -89,4 +89,3 @@ location / {
   ...
 }
 ```
-
