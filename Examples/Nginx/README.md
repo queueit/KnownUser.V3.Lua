@@ -2,11 +2,25 @@
 
 ## Implementation
 
-NOTE: The following implementation steps have been developed and tested using this [Docker image](https://github.com/fabiocicerchia/nginx-lua).
+NOTES:
+- The following implementation steps have been developed and tested using this [Docker image](https://github.com/fabiocicerchia/nginx-lua).
+- The following example uses `./usr/queueit` as the base path for storing all the Queue-it related files. Review and modify it to your needs.
 
-Copy [KnownUserNginxHandler.lua](https://github.com/queueit/KnownUser.V3.Lua/blob/master/Handlers/KnownUserNginxHandler.lua) and folders ([SDK](https://github.com/queueit/KnownUser.V3.Lua/tree/master/SDK) and [Helpers](https://github.com/queueit/KnownUser.V3.Lua/tree/master/Helpers)) incl. their content to your NGINX filesystem (in the following example we have added it to `usr/queueit`).
 
-Then update/add `lua_package_path` in your `nginx.conf` to include the new path (keep `;;` in the end which means default path):
+### 1. Copy the necessary files to your NGINX filesystem
+
+Copy the following two folders from this repository to your NGINX filesystem:
+- [SDK](../../SDK) -> `./usr/queueit/SDK`
+- [Helpers](../../Helpers) -> `./usr/queueit/Helpers`
+
+Copy the main handler script:
+
+- [Handlers/KnownUserNginxHandler.lua](../../Handlers/KnownUserNginxHandler.lua) -> `./usr/queueit/KnownUserNginxHandler.lua`
+
+
+### 2. Update the package paths
+
+Update or add the `lua_package_path` configuration option in the `http` section of your main configuration file (typically `nginx.conf`) to include the new paths you created in Step 1. Make sure to keep `;;` in the end which means default path:
 
 ```
 http {
@@ -14,7 +28,11 @@ http {
 }
 ```
 
-Then update `conf.d/default.conf`:
+
+### 3. Add the Queue-it handler to a specific location
+
+Update the configuration file relative to the location you want to be protected by Queue-it (`conf.d/default.conf` or similar):
+
 ```
 server {
   location / {
@@ -44,15 +62,21 @@ server {
     }
 }
 ```
-In this example `rewrite_by_lua_block` have been added to default location `/` but you must decide what makes sense in your case.
-Especially excluding any static content you don't want queue-it protection triggering on. This could be images (.png, .jpg), style (.css) and pages (.html).  
 
-Please note the comments in the code about providing `integrationconfig.json` ([read more](https://github.com/queueit/KnownUser.V3.Lua#1-providing-the-queue-configuration)) and replacing `CUSTOMER_ID` and `SECRET_KEY` with correct credentials located in GO Queue-it platform.
+Replace the following two placeholders in the above code `{CUSTOMER_ID}` and `{SECRET_KEY}` with respective values located in GO Queue-it platform.
 
-### Request body trigger (advanced)
-Nginx handler (incl. Lua SDK) supports triggering on request body content. Example could be a POST call with specific item ID where you want end-users to queue up for.
-You will need to contact queue-it support if this functionality is needed, so it can be enabled on your GO Queue-it platform account.
-When enabled you also need to add extra settings to `location` in `conf.d/default.conf`:
+NOTE: In this example `rewrite_by_lua_block` directive was added to default location `/` but you must decide what makes sense in your case. In the specific, excluding any static content you don't want queue-it protection triggering on. This could be images (.png, .jpg), style sheets (.css) and pages (.html).
+
+
+### 4) Provide the configuration file
+
+The above code requires you to provide the `integrationconfig.json` file which contains the configuration you create on the Queue-it GO platform ([more info here](../../README.md#1-providing-the-queue-configuration)). There are various ways to provide this file. Please read the [specific documentation here](../../Documentation/README.md).
+
+
+## Request body trigger (advanced)
+The Nginx handler (incl. Lua SDK) supports triggering on request body content. An example could be a POST call with specific item ID where you want end-users to queue up for.
+For this to work, you will need to contact queue-it support, so it can be enabled on your GO Queue-it platform account.
+Once enabled, you will need to add these extra settings to your configuration:
 
 ```
 location / {
@@ -65,4 +89,3 @@ location / {
   ...
 }
 ```
-
