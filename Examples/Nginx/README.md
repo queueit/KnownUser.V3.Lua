@@ -68,9 +68,9 @@ Replace the following two placeholders in the above code `{CUSTOMER_ID}` and `{S
 NOTE: In this example `rewrite_by_lua_block` directive was added to default location `/` but you must decide what makes sense in your case. In the specific, excluding any static content you don't want queue-it protection triggering on. This could be images (.png, .jpg), style sheets (.css) and pages (.html).
 
 
-### 4) Provide the configuration file
+### 4. Provide the configuration file
 
-The above code requires you to provide the `integrationconfig.json` file which contains the configuration you create on the Queue-it GO platform ([more info here](../../README.md#1-providing-the-queue-configuration)). There are various ways to provide this file. Please read the [specific documentation here](../../Documentation/README.md).
+The above code requires you to provide the `integrationconfig.json` file which contains the configuration you created on the Queue-it GO platform ([more info here](../../README.md#1-providing-the-queue-configuration)). There are various ways to provide this file. Please read the [specific documentation here](../../Documentation/README.md).
 
 
 ## Request body trigger (advanced)
