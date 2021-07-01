@@ -1,5 +1,5 @@
 # KnownUser.V3.Lua
-The Queue-it Security Framework is used to ensure that end users cannot bypass the queue by adding a server-side integration to your server. It was developed and verified with Lua v.5.1.
+The Queue-it Security Framework is used to ensure that end users cannot bypass the queue by adding a server-side integration to your server. It was developed and verified with Lua v.5.1. **Running this SDK on Lua versions higher than this (ex. v.5.3) will not work**.   
 
 ## Introduction
 When a user is redirected back from the queue to your website, the queue engine can attach a query string parameter (`queueittoken`) containing some information about the user. 
