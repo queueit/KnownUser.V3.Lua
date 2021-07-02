@@ -70,10 +70,11 @@ NOTE: In this example `rewrite_by_lua_block` directive was added to default loca
 
 ### 4. Provide the configuration file
 
-The above code requires you to provide the `integrationconfig.json` file which contains the configuration you created on the Queue-it GO platform ([more info here](../../README.md#1-providing-the-queue-configuration)). There are various ways to provide this file. Please read the [specific documentation here](../../Documentation/README.md).
+The above code requires you to provide the `integrationconfig.json` file which contains the configuration you created on the Queue-it GO platform. Please refer to [this page](https://github.com/queueit/Documentation/tree/main/serverside-connectors/integration-config) for more details.
 
 
 ## Request body trigger (advanced)
+
 The Nginx handler (incl. Lua SDK) supports triggering on request body content. An example could be a POST call with specific item ID where you want end-users to queue up for.
 For this to work, you will need to contact queue-it support, so it can be enabled on your GO Queue-it platform account.
 Once enabled, you will need to add these extra settings to your configuration:
