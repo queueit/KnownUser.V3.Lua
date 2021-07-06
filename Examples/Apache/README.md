@@ -35,6 +35,23 @@ LuaPackagePath "{APP_FOLDER}/Handlers/?.lua"
 - {APP_FOLDER} = Apache www folder where your app/integration is located. Ex. 'C:/wamp64/www/lua'. Make sure SDK, Handlers and Helpers folders (incl. content) are copied here. 
 - {URI_PATTERN} = Pattern used to match which URLs should go through the handler. https://httpd.apache.org/docs/trunk/mod/mod_lua.html#luamaphandler
 
+#### Resolving current request URL
+The SDK needs to be able to resolve the current request URL. It does it by calling the function `getAbsoluteUri` located in *[ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua)*.
+
+Sometimes this function needs be be adjusted depending on what is available in your infrastructure. Could be that `r.is_https` and/or `r.hostname` are unavailable and then the function call would fail. In these cases you would need to replace with hardcoded values (or settings read from environment variables) ex.:
+
+```
+iHelpers.request.getAbsoluteUri = function()   
+   local fullUrl = string.format("https://%s%s",
+      "my-domain.example",
+      r.unparsed_uri)   
+   r:debug(string.format("[%s] Rebuilt request URL as: %s", DEBUG_TAG, fullUrl)) 
+   return fullUrl
+end
+```
+You will quickly notice if this function fails because its called on each request. Check you Apache logs for any warnings/errors.
+The example above (and default implementation) also contains `r:debug` so you can see what URLs are being built. It's important to note that these URLs should be public ones (e.g. use real domain, no internal IPs). You can test this by opening up a browser and visiting that generated URL.
+
 ## Alternative Implementation
 
 ### Queue configuration
