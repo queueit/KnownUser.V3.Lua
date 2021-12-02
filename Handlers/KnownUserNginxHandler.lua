@@ -39,7 +39,7 @@ iHelpers.request.getUserHostAddress = function()
 	return ngx.var.remote_addr
 end
 
-iHelpers.response.setCookie = function(name, value, expire, domain)
+iHelpers.response.setCookie = function(name, value, expire, domain, isHttpOnly, isSecure)
 	-- lua_mod only supports 1 Set-Cookie header (because 'header' is a table).
 	-- So calling this method (setCookie) multiple times will not work as expected.
 	-- In this case final call will apply.
@@ -62,8 +62,8 @@ iHelpers.response.setCookie = function(name, value, expire, domain)
 	ngx.header["Set-Cookie"] = name .. '=' .. value
 		.. expire_text
 		.. (domain ~= "" and '; Domain=' .. domain or '')
-		.. (iHelpers.response.cookieOptions.httpOnly and '; HttpOnly' or '')
-		.. (iHelpers.response.cookieOptions.secure and '; Secure' or '')
+		.. (isHttpOnly and '; HttpOnly' or '')
+		.. (isSecure and '; Secure' or '')
 		.. '; Path=/;'
 end
 
@@ -72,24 +72,6 @@ iHelpers.request.getAbsoluteUri = function()
 end
 
 local aHandler = {}
-
-aHandler.setOptions = function(options)
-	if (options == nil) then
-		error('invalid options')
-	end
-	
-	if (options.secure) then
-		iHelpers.response.cookieOptions.secure = true
-	else
-		iHelpers.response.cookieOptions.secure = false
-	end
-	
-	if (options.httpOnly) then
-		iHelpers.response.cookieOptions.httpOnly = true
-	else
-		iHelpers.response.cookieOptions.httpOnly = false
-	end	
-end
 
 aHandler.handleByIntegrationConfig = function(customerId, secretKey, integrationConfigJson)
 	local queueitToken = ''
@@ -111,7 +93,9 @@ aHandler.handleByIntegrationConfig = function(customerId, secretKey, integration
 		-- end
 		
 		if (validationResult.isAjaxResult) then
-			ngx.header[validationResult.getAjaxQueueRedirectHeaderKey()] = validationResult:getAjaxRedirectUrl()
+			local headerName = validationResult.getAjaxQueueRedirectHeaderKey()
+			ngx.header[headerName] = validationResult:getAjaxRedirectUrl()
+			ngx.header['Access-Control-Expose-Headers'] = headerName
 		else
 			ngx.redirect(validationResult.redirectUrl)
 			ngx.exit(ngx.HTTP_MOVED_TEMPORARILY)

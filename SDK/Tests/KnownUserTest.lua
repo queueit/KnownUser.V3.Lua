@@ -17,7 +17,7 @@ iHelpers.reset = function()
 	iHelpers.request.getUserHostAddress = function()
 		return nil
 	end
-	iHelpers.response.setCookie = function(name, value, _, _)
+	iHelpers.response.setCookie = function(name, value, _, _, _, _)
 		if(name=="queueitdebug") then
 			iHelpers.response.debugCookieSet = value
 		end
@@ -53,10 +53,16 @@ userInQueueServiceMock.validateCancelRequest = function(targetUrl, cancelConfig,
 	end
 end
 userInQueueServiceMock.extendQueueCookieResult = { }
-userInQueueServiceMock.extendQueueCookie = function(eventId, cookieValidityMinute, cookieDomain, secretKey)
+userInQueueServiceMock.extendQueueCookie = function(
+	eventId, cookieValidityMinute, cookieDomain, isCookieHttpOnly, isCookieSecure, secretKey)
     userInQueueServiceMock.methodInvokations = {
-		method="extendQueueCookie", eventId=eventId, cookieValidityMinute=cookieValidityMinute,
-		cookieDomain=cookieDomain, secretKey=secretKey
+		method="extendQueueCookie",
+		eventId=eventId,
+		cookieValidityMinute=cookieValidityMinute,
+		cookieDomain=cookieDomain,
+		isCookieHttpOnly=isCookieHttpOnly,
+		isCookieSecure=isCookieSecure,
+		secretKey=secretKey
 	}
     return userInQueueServiceMock.validateQueueRequestResult
 end
@@ -286,7 +292,7 @@ local function KnownUserTest()
 		local errorMsg
 		local status = xpcall(
 			function()
-				knownUser.extendQueueCookie(nil, 10, "cookieDomain", "secretkey")
+				knownUser.extendQueueCookie(nil, 10, "cookieDomain", false, false, "secretkey")
 			end,
 			function(err)
 				errorMsg = err
@@ -304,7 +310,7 @@ local function KnownUserTest()
 	  local errorMsg
 	  local status = xpcall(
 		function()
-			knownUser.extendQueueCookie("event1", 10, "cookieDomain", nil)
+			knownUser.extendQueueCookie("event1", 10, "cookieDomain", false, false, nil)
 		end,
 		function(err)
 			errorMsg = err
@@ -322,7 +328,7 @@ local function KnownUserTest()
 	  local errorMsg
 	  local status = xpcall(
 		function()
-			knownUser.extendQueueCookie("event1", "notnumber", "cookieDomain", "secretKey")
+			knownUser.extendQueueCookie("event1", "notnumber", "cookieDomain", false, false, "secretKey")
 		end,
 		function(err)
 			errorMsg = err
@@ -340,7 +346,7 @@ local function KnownUserTest()
 	  local errorMsg
 	  local status = xpcall(
 		function()
-			knownUser.extendQueueCookie("event1", -1, "cookieDomain", "secretKey")
+			knownUser.extendQueueCookie("event1", -1, "cookieDomain", false, false, "secretKey")
 		end,
 		function(err)
 			errorMsg = err
@@ -355,12 +361,14 @@ local function KnownUserTest()
 	local function test_extendQueueCookie()
 		resetAllMocks()
 
-		knownUser.extendQueueCookie("eventid", 10, "cookieDomain", "secretkey")
+		knownUser.extendQueueCookie("eventid", 10, "cookieDomain", true, true, "secretkey")
 
 		assert( userInQueueServiceMock.methodInvokations.method == "extendQueueCookie" )
 		assert( userInQueueServiceMock.methodInvokations.eventId == "eventid" )
 		assert( userInQueueServiceMock.methodInvokations.cookieValidityMinute == 10 )
 		assert( userInQueueServiceMock.methodInvokations.cookieDomain == "cookieDomain" )
+		assert( userInQueueServiceMock.methodInvokations.isCookieHttpOnly )
+		assert( userInQueueServiceMock.methodInvokations.isCookieSecure )
 		assert( userInQueueServiceMock.methodInvokations.secretKey == "secretkey" )
 	end
 	test_extendQueueCookie()
@@ -1286,8 +1294,14 @@ local function KnownUserTest()
 			"|RequestHttpHeader_XForwardedProto=xfp" ..
 			"|ServerUtcTime=" .. timestamp ..
 			"|QueueitToken=" .. token ..
-			"|CancelConfig=EventId:event1&Version:3" ..
-			"&QueueDomain:knownusertest.queue-it.net&CookieDomain:.test.com&ActionName:event1action"
+			"|CancelConfig="
+				.. "EventId:event1"
+				.. "&Version:3"
+				.. "&QueueDomain:knownusertest.queue-it.net"
+				.. "&CookieDomain:.test.com"
+				.. "&IsCookieHttpOnly:false"
+				.. "&IsCookieSecure:false"
+				.. "&ActionName:event1action"
 
 		local cookieArray = utils.explode("|", iHelpers.response.debugCookieSet )
 		for _, value in pairs(cookieArray) do
@@ -1560,6 +1574,8 @@ local function KnownUserTest()
 		eventconfig.culture = "culture"
 		eventconfig.eventId = "eventId"
 		eventconfig.queueDomain = "queueDomain"
+		eventconfig.isCookieHttpOnly = true
+		eventconfig.isCookieSecure = true
 		eventconfig.extendCookieValidity = true
 		eventconfig.cookieValidityMinute = 10
 		eventconfig.version = 12
@@ -1583,9 +1599,18 @@ local function KnownUserTest()
 			"|RequestHttpHeader_XForwardedFor=xff" ..
 			"|QueueitToken=" .. token ..
 			"|RequestIP=userIP" ..
-			"|QueueConfig=EventId:eventId&Version:12" ..
-			"&QueueDomain:queueDomain&CookieDomain:cookieDomain&ExtendCookieValidity" ..
-			":true&CookieValidityMinute:10&LayoutName:layoutName&Culture:culture&ActionName:event1action"
+			"|QueueConfig="
+				.. "EventId:eventId"
+				.. "&Version:12"
+				.. "&QueueDomain:queueDomain"
+				.. "&CookieDomain:cookieDomain"
+				.. "&IsCookieHttpOnly:true"
+				.. "&IsCookieSecure:true"
+				.. "&ExtendCookieValidity:true"
+				.. "&CookieValidityMinute:10"
+				.. "&LayoutName:layoutName"
+				.. "&Culture:culture"
+				.. "&ActionName:event1action"
 
 		local cookieArray = utils.explode("|", iHelpers.response.debugCookieSet )
 		for _, value in pairs(cookieArray) do
@@ -1744,6 +1769,8 @@ local function KnownUserTest()
 
 		local cancelEventconfig = models.CancelEventConfig.create()
 		cancelEventconfig.cookieDomain = "cookieDomain"
+		cancelEventconfig.isCookieHttpOnly = true
+		cancelEventconfig.isCookieSecure = true
 		cancelEventconfig.eventId = "eventId"
 		cancelEventconfig.queueDomain = "queueDomain"
 		cancelEventconfig.version = 1
@@ -1762,8 +1789,14 @@ local function KnownUserTest()
 			"|RequestHttpHeader_XForwardedProto=xfp" ..
 			"|RequestHttpHeader_Via=v" ..
 			"|TargetUrl=targeturl" ..
-			"|CancelConfig=EventId:eventId&Version:1&QueueDomain:queueDomain&" ..
-			"CookieDomain:cookieDomain&ActionName:event1action" ..
+			"|CancelConfig="
+				.. "EventId:eventId"
+				.. "&Version:1"
+				.. "&QueueDomain:queueDomain"
+				.. "&CookieDomain:cookieDomain"
+				.. "&IsCookieHttpOnly:true"
+				.. "&IsCookieSecure:true"
+				.. "&ActionName:event1action" ..
 			"|OriginalUrl=OriginalURL" ..
 			"|RequestHttpHeader_XForwardedHost=xfh" ..
 			"|RequestHttpHeader_XForwardedFor=xff" ..

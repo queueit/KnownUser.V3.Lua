@@ -16,16 +16,29 @@ userInQueueStateCookieRepositoryMock.getState = function(eventId, cookieValidity
 end
 
 userInQueueStateCookieRepositoryMock.store = function(
-    eventId, queueId, fixedCookieValidityMinutes, cookieDomain, redirectType, secretKey)
+    eventId, queueId, fixedCookieValidityMinutes, cookieDomain, isCookieHttpOnly,
+    isCookieSecure, redirectType, secretKey)
 
     userInQueueStateCookieRepositoryMock.storeCall = {
-        eventId=eventId, queueId=queueId, fixedCookieValidityMinutes=fixedCookieValidityMinutes,
-        cookieDomain=cookieDomain, redirectType=redirectType, secretKey=secretKey
+        eventId=eventId,
+        queueId=queueId,
+        fixedCookieValidityMinutes=fixedCookieValidityMinutes,
+        cookieDomain=cookieDomain,
+        isCookieHttpOnly=isCookieHttpOnly,
+        isCookieSecure=isCookieSecure,
+        redirectType=redirectType,
+        secretKey=secretKey
     }
 end
 
-userInQueueStateCookieRepositoryMock.cancelQueueCookie = function(eventId, cookieDomain)
-	userInQueueStateCookieRepositoryMock.cancelQueueCookieCall = { eventId=eventId, cookieDomain=cookieDomain}
+userInQueueStateCookieRepositoryMock.cancelQueueCookie = function(
+    eventId, cookieDomain, isCookieHttpOnly, isCookieSecure)
+	userInQueueStateCookieRepositoryMock.cancelQueueCookieCall = {
+        eventId=eventId,
+        cookieDomain=cookieDomain,
+        isCookieHttpOnly=isCookieHttpOnly,
+        isCookieSecure=isCookieSecure
+    }
 end
 
 userInQueueStateCookieRepositoryMock.reset = function()
@@ -34,7 +47,7 @@ userInQueueStateCookieRepositoryMock.reset = function()
     userInQueueStateCookieRepositoryMock.cancelQueueCookieCall = {}
 end
 
-iHelpers.response.setCookie = function(_, _, _, _)
+iHelpers.response.setCookie = function(_, _, _, _, _, _)
 end
 iHelpers.system.getConnectorName = function()
     return "mock-connector"
@@ -482,10 +495,13 @@ local function UserInQueueServiceTest()
         eventConfig.actionName = "CancelAction"
         local url = "http://test.test.com?b=h"
 
-		local expectedUrl = "https://testDomain.com/cancel/testCustomer/e1/?c=testCustomer&e=e1"
+		local expectedUrl = "https://testDomain.com/cancel/testCustomer/e1/queueid?"
+            .. "c=testCustomer"
+            .. "&e=e1"
             .. "&ver=" .. userInQueueService.SDK_VERSION
             .. "&kupver=mock-connector"
-            .. "&cver=10&man=" .. eventConfig.actionName
+            .. "&cver=10"
+            .. "&man=" .. eventConfig.actionName
             .. "&r=" .. utils.urlEncode(url)
 
 		local result = userInQueueService.validateCancelRequest(url, eventConfig, "testCustomer", key)

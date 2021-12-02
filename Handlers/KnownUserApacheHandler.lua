@@ -103,7 +103,7 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 	-- Implementation is not using built in r:setcookie method
 	-- because we want to support Apache version < 2.4.12
 	-- where there is bug in that specific method
-	iHelpers.response.setCookie = function(name, value, expire, domain)
+	iHelpers.response.setCookie = function(name, value, expire, domain, isHttpOnly, isSecure)
 		-- lua_mod only supports 1 Set-Cookie header (because 'err_headers_out' is a table).
 		-- So calling this method (setCookie) multiple times will not work as expected.
 		-- In this case final call will apply.
@@ -126,8 +126,8 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 		request_rec.err_headers_out["Set-Cookie"] = name .. '=' .. value
 			.. expire_text
 			.. (domain ~= "" and '; Domain=' .. domain or '')
-			.. (iHelpers.response.cookieOptions.httpOnly and '; HttpOnly' or '')
-			.. (iHelpers.response.cookieOptions.secure and '; Secure' or '')
+			.. (isHttpOnly and '; HttpOnly' or '')
+			.. (isSecure and '; Secure' or '')
 			.. '; Path=/;'
 
 	end
@@ -153,7 +153,9 @@ local function handle(customerId, secretKey, config, isIntegrationConfig, reques
 		-- end
 
 		if (validationResult.isAjaxResult) then
-			request_rec.err_headers_out[validationResult.getAjaxQueueRedirectHeaderKey()] = validationResult:getAjaxRedirectUrl()
+			local headerName = validationResult.getAjaxQueueRedirectHeaderKey()
+			request_rec.err_headers_out[headerName] = validationResult:getAjaxRedirectUrl()
+			request_rec.err_headers_out['Access-Control-Expose-Headers'] = headerName
 		else
 			request_rec.err_headers_out["Location"] = validationResult.redirectUrl
 			return apache2.HTTP_MOVED_TEMPORARILY

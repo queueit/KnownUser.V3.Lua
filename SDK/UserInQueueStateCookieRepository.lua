@@ -113,9 +113,9 @@ repo.getCookieKey = function(eventId)
 	return "QueueITAccepted-SDFrts345E-V3_" .. eventId
 end
 
-repo.cancelQueueCookie = function(eventId, cookieDomain)
+repo.cancelQueueCookie = function(eventId, cookieDomain, isCookieHttpOnly, isCookieSecure)
 	local cookieKey = repo.getCookieKey(eventId)
-	iHelpers.response.setCookie(cookieKey, "deleted", 1, cookieDomain)
+	iHelpers.response.setCookie(cookieKey, "deleted", 1, cookieDomain, isCookieHttpOnly, isCookieSecure)
 end
 
 repo.getState = function(eventId, cookieValidityMinutes, secretKey, validateTime)
@@ -151,7 +151,8 @@ repo.getState = function(eventId, cookieValidityMinutes, secretKey, validateTime
 	return repo.StateInfo.create(true, false, nil, nil, nil)
 end
 
-repo.reissueQueueCookie = function(eventId, cookieValidityMinutes, cookieDomain, secretKey)
+repo.reissueQueueCookie = function(
+	eventId, cookieValidityMinutes, cookieDomain, isCookieHttpOnly, isCookieSecure, secretKey)
 	local cookieKey = repo.getCookieKey(eventId)
 	if (iHelpers.request.getUnescapedCookieValue(cookieKey) == nil) then
 		return
@@ -173,14 +174,17 @@ repo.reissueQueueCookie = function(eventId, cookieValidityMinutes, cookieDomain,
 		cookieNameValueMap["RedirectType"],
 		secretKey)
 
-	iHelpers.response.setCookie(cookieKey, cookieValue, os.time() + (24 * 60 * 60), cookieDomain)
+	iHelpers.response.setCookie(
+		cookieKey, cookieValue, os.time() + (24 * 60 * 60), cookieDomain, isCookieHttpOnly, isCookieSecure)
 end
 
-repo.store = function(eventId, queueId, fixedCookieValidityMinutes, cookieDomain, redirectType, secretKey)
+repo.store = function(
+	eventId, queueId, fixedCookieValidityMinutes, cookieDomain, isCookieHttpOnly, isCookieSecure, redirectType, secretKey)
 	local cookieKey = repo.getCookieKey(eventId)
 	local cookieValue = createCookieValue(
 		eventId, queueId, utils.toString(fixedCookieValidityMinutes), redirectType, secretKey)
-	iHelpers.response.setCookie(cookieKey, cookieValue, os.time() + (24 * 60 * 60), cookieDomain)
+	iHelpers.response.setCookie(
+		cookieKey, cookieValue, os.time() + (24 * 60 * 60), cookieDomain, isCookieHttpOnly, isCookieSecure)
 end
 
 return repo

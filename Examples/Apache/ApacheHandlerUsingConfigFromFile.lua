@@ -14,11 +14,6 @@
 --...   * QUEUEIT_INT_CONF_FILE: The local JSON file containing the integration configuration
 --      * QUEUEIT_ERROR_CODE: (optional) The response code to use instead of declining to act
 --                            if request handling fails
---      * QUEUEIT_COOKIE_OPTIONS_HTTPONLY: (optional) Set to "true" if you want cookies with httponly
---                            flag set. Only enable if this you use pure server-side integration
---                            e.g. not JS Hybrid.
---      * QUEUEIT_COOKIE_OPTIONS_SECURE: (optional) Set to "true" if you want cookies with secure
---                            flag set. Only enable if your website runs purely on https.
 --    Note that the integration configuration is read on every request. The JSON file containing
 --    The integration configuration should, for performance reasons, be available locally.
 --
@@ -29,6 +24,7 @@
 --      SetEnv  QUEUEIT_CUSTOMER_ID                 "{CUSTOMER_ID}"
 --      SetEnv  QUEUEIT_SECRET_KEY                  "{SECRET_KEY}"
 --      SetEnv  QUEUEIT_INT_CONF_FILE               "{APP_FOLDER}/integration_config.json"
+--      SetEnv  QUEUEIT_ERROR_CODE                  "400"
 --      LuaMapHandler  "{URI_PATTERN}"  "{APP_FOLDER}/Handlers/ApacheHandlerUsingConfigFromFile.lua"
 --      LuaPackagePath "{APP_FOLDER}/SDK/?.lua"
 --      LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"
@@ -45,7 +41,7 @@ local DEBUG_TAG = "ApacheHandlerUsingConfigFromFile.lua"
 local kuHandler = require("KnownUserApacheHandler")
 local file = require("file")
 
-local function initRequiredHelpers(r, cookieOptions)
+local function initRequiredHelpers(r)
     local iHelpers = require("KnownUserImplementationHelpers")
 
     iHelpers.request.getAbsoluteUri = function()
@@ -56,8 +52,6 @@ local function initRequiredHelpers(r, cookieOptions)
         r:debug(string.format("[%s] Rebuilt request URL as: %s", DEBUG_TAG, fullUrl))
         return fullUrl
     end
-
-    iHelpers.response.cookieOptions = cookieOptions
 end
 
 function handle(r)
@@ -73,8 +67,6 @@ function handle(r)
         local secretKey = r.subprocess_env["QUEUEIT_SECRET_KEY"]
         local intConfFile = r.subprocess_env["QUEUEIT_INT_CONF_FILE"]
         local errorCode = r.subprocess_env["QUEUEIT_ERROR_CODE"]
-        local co_httpOnly = r.subprocess_env["QUEUEIT_COOKIE_OPTIONS_HTTPONLY"]
-        local co_secure = r.subprocess_env["QUEUEIT_COOKIE_OPTIONS_SECURE"]
 
         if customerId ~= nil then
             r:debug(string.format("[%s] Environment variable QUEUEIT_CUSTOMER_ID: %s", DEBUG_TAG, customerId))
@@ -87,12 +79,6 @@ function handle(r)
         end
         if errorCode ~= nil then
             r:debug(string.format("[%s] Environment variable QUEUEIT_ERROR_CODE: %s", DEBUG_TAG, errorCode))
-        end
-        if co_httpOnly ~= nil then
-            r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_HTTPONLY: %s", DEBUG_TAG, co_httpOnly))
-        end
-        if co_secure ~= nil then
-            r:debug(string.format("[%s] Environment variable QUEUEIT_COOKIE_OPTIONS_SECURE: %s", DEBUG_TAG, co_secure))
         end
 
         assert(customerId ~= nil, "customerId invalid")
@@ -112,18 +98,8 @@ function handle(r)
         end
         r:debug(string.format("[%s] Value of variable errorCode: %s", DEBUG_TAG, errorCode))
 
-        -- configure cookie options
-        local cookieOptions =
-        {
-            httpOnly = false,
-            secure = false
-        }
-
-        if (co_httpOnly ~= nil and co_httpOnly == 'true') then cookieOptions.httpOnly = true end
-        if (co_secure ~= nil and co_secure == 'true') then cookieOptions.secure = true end
-
         -- initialize helper functions
-        initRequiredHelpers(r, cookieOptions)
+        initRequiredHelpers(r)
 
         -- read integration configuration from file
         local intConfJson = file.readAll(intConfFile)

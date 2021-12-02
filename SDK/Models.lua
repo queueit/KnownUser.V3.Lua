@@ -11,6 +11,8 @@ local models = {
 				extendCookieValidity = nil,
 				cookieValidityMinute = nil,
 				cookieDomain = nil,
+				isCookieHttpOnly = nil,
+				isCookieSecure = nil,
 				version = nil,
 				actionName = "unspecified",
 				getString = function(self)
@@ -19,6 +21,8 @@ local models = {
 						"&Version:" .. utils.toString(self.version) ..
 						"&QueueDomain:" .. utils.toString(self.queueDomain) ..
 						"&CookieDomain:" .. utils.toString(self.cookieDomain) ..
+						"&IsCookieHttpOnly:" .. utils.toString(self.isCookieHttpOnly) ..
+						"&IsCookieSecure:" .. utils.toString(self.isCookieSecure) ..
 						"&ExtendCookieValidity:" .. utils.toString(self.extendCookieValidity) ..
 						"&CookieValidityMinute:" .. utils.toString(self.cookieValidityMinute) ..
 						"&LayoutName:" .. utils.toString(self.layoutName) ..
@@ -36,6 +40,8 @@ local models = {
 				eventId = nil,
 				queueDomain = nil,
 				cookieDomain = nil,
+				isCookieHttpOnly = nil,
+				isCookieSecure = nil,
 				version = nil,
 				actionName = "unspecified",
 				getString = function(self)
@@ -44,6 +50,8 @@ local models = {
 						"&Version:" .. utils.toString(self.version) ..
 						"&QueueDomain:" .. utils.toString(self.queueDomain) ..
 						"&CookieDomain:" .. utils.toString(self.cookieDomain) ..
+						"&IsCookieHttpOnly:" .. utils.toString(self.isCookieHttpOnly) ..
+						"&IsCookieSecure:" .. utils.toString(self.isCookieSecure) ..
 						"&ActionName:" .. utils.toString(self.actionName)
 				end
 			}

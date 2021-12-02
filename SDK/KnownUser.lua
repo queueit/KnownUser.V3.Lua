@@ -37,7 +37,7 @@ local function setDebugCookie(debugEntries)
 		cookieValue = cookieValue .. (key .. "=" .. value .. "|")
 	end
 	cookieValue = cookieValue:sub(0, cookieValue:len()-1) -- remove trailing |
-	iHelpers.response.setCookie(QUEUEIT_DEBUG_KEY, cookieValue, 0, nil)
+	iHelpers.response.setCookie(QUEUEIT_DEBUG_KEY, cookieValue, 0, nil, false, false)
 end
 
 local function generateTargetUrl(originalTargetUrl)
@@ -124,7 +124,8 @@ local function cancelRequestByLocalConfig(
 end
 -- END Private functions
 
-ku.extendQueueCookie = function(eventId, cookieValidityMinute, cookieDomain, secretKey)
+ku.extendQueueCookie = function(
+	eventId, cookieValidityMinute, cookieDomain, isCookieHttpOnly, isCookieSecure, secretKey)
 	assert(utils.toString(eventId) ~= "", "eventId can not be nil or empty.")
 	assert(utils.toString(secretKey) ~= "", "secretKey can not be nil or empty.")
 
@@ -133,7 +134,8 @@ ku.extendQueueCookie = function(eventId, cookieValidityMinute, cookieDomain, sec
 		error("cookieValidityMinute should be a number greater than 0.")
 	end
 
-	userInQueueService.extendQueueCookie(eventId, cookieValidityMinute, cookieDomain, secretKey)
+	userInQueueService.extendQueueCookie(
+		eventId, cookieValidityMinute, cookieDomain, isCookieHttpOnly, isCookieSecure, secretKey)
 end
 
 ku.cancelRequestByLocalConfig = function(targetUrl, queueitToken, cancelConfig, customerId, secretKey)
@@ -165,19 +167,27 @@ ku.validateRequestByIntegrationConfig = function(
 	currentUrlWithoutQueueITToken, queueitToken, integrationConfigJson, customerId, secretKey)
 	-- Private functions
 	local function handleQueueAction(
-		_currentUrlWithoutQueueITToken, _queueitToken, _customerIntegration,
-		_customerId, _secretKey, _matchedConfig, _debugEntries, _isDebug)
+		_currentUrlWithoutQueueITToken,
+		_queueitToken,
+		_customerIntegration,
+		_customerId,
+		_secretKey,
+		_matchedConfig,
+		_debugEntries,
+		_isDebug)
 
 		local eventConfig = models.QueueEventConfig.create()
 		local targetUrl
 		eventConfig.eventId = _matchedConfig["EventId"]
+		eventConfig.version = _customerIntegration["Version"]
 		eventConfig.queueDomain = _matchedConfig["QueueDomain"]
-		eventConfig.layoutName = _matchedConfig["LayoutName"]
-		eventConfig.culture = _matchedConfig["Culture"]
 		eventConfig.cookieDomain = _matchedConfig["CookieDomain"]
+		eventConfig.isCookieHttpOnly = _matchedConfig["IsCookieHttpOnly"] or false
+		eventConfig.isCookieSecure = _matchedConfig["IsCookieSecure"] or false
 		eventConfig.extendCookieValidity = _matchedConfig["ExtendCookieValidity"]
 		eventConfig.cookieValidityMinute = _matchedConfig["CookieValidityMinute"]
-		eventConfig.version = _customerIntegration["Version"]
+		eventConfig.layoutName = _matchedConfig["LayoutName"]
+		eventConfig.culture = _matchedConfig["Culture"]
 		eventConfig.actionName = _matchedConfig["Name"]
 
 		if (_matchedConfig["RedirectLogic"] == "ForcedTargetUrl"
@@ -201,9 +211,11 @@ ku.validateRequestByIntegrationConfig = function(
 
 		local cancelEventConfig = models.CancelEventConfig.create()
 		cancelEventConfig.eventId = _matchedConfig["EventId"]
+		cancelEventConfig.version = _customerIntegration["Version"]
 		cancelEventConfig.queueDomain = _matchedConfig["QueueDomain"]
 		cancelEventConfig.cookieDomain = _matchedConfig["CookieDomain"]
-		cancelEventConfig.version = _customerIntegration["Version"]
+		cancelEventConfig.isCookieHttpOnly = _matchedConfig["IsCookieHttpOnly"] or false
+		cancelEventConfig.isCookieSecure = _matchedConfig["IsCookieSecure"] or false
 		cancelEventConfig.actionName = _matchedConfig["Name"]
 
 		return cancelRequestByLocalConfig(

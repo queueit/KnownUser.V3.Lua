@@ -12,8 +12,8 @@ iHelpers.request.getUnescapedCookieValue = function(name)
 	end
 end
 
-iHelpers.response.setCookie = function(name, value, expire, domain)
-	mockCookies[name] = { name=name, value=value, expire=expire, domain=domain }
+iHelpers.response.setCookie = function(name, value, expire, domain, isHttpOnly, isSecure)
+	mockCookies[name] = { name=name, value=value, expire=expire, domain=domain, isHttpOnly=isHttpOnly, isSecure=isSecure }
 end
 -- END Mocks
 
@@ -29,10 +29,13 @@ local function UserInQueueStateCookieRepositoryTest()
 		local eventId = "event1"
         local secretKey = "4e1deweb821-a82ew5-49da-acdqq0-5d3476f2068db"
         local cookieDomain = ".test.com"
+        local isCookieHttpOnly = true
+        local isCookieSecure = true
         local queueId = "queueId"
         local cookieValidity = 10
 
-        userInQueueStateCookieRepository.store(eventId, queueId, nil, cookieDomain, "Queue", secretKey)
+        userInQueueStateCookieRepository.store(
+            eventId, queueId, nil, cookieDomain, isCookieHttpOnly, isCookieSecure, "Queue", secretKey)
         local state = userInQueueStateCookieRepository.getState(eventId, cookieValidity, secretKey, true)
 
         assert( state.isValid )
@@ -44,6 +47,8 @@ local function UserInQueueStateCookieRepositoryTest()
         assert( mockCookies[cookieKey] ~= nil )
 		assert( tonumber(mockCookies[cookieKey].expire) - os.time() - 24 * 60 * 60 < 100 )
 		assert( mockCookies[cookieKey].domain == cookieDomain )
+		assert( mockCookies[cookieKey].isHttpOnly == isCookieHttpOnly )
+		assert( mockCookies[cookieKey].isSecure == isCookieSecure )
     end
 	test_store_hasValidState_ExtendableCookie_CookieIsSaved()
 
@@ -53,10 +58,13 @@ local function UserInQueueStateCookieRepositoryTest()
 		local eventId = "event1"
         local secretKey = "4e1deweb821-a82ew5-49da-acdqq0-5d3476f2068db"
         local cookieDomain = ".test.com"
+        local isCookieHttpOnly = true
+        local isCookieSecure = true
         local queueId = "queueId"
         local cookieValidity = 3
 
-        userInQueueStateCookieRepository.store(eventId, queueId, cookieValidity, cookieDomain, "Idle", secretKey)
+        userInQueueStateCookieRepository.store(
+            eventId, queueId, cookieValidity, cookieDomain, isCookieHttpOnly, isCookieSecure, "Idle", secretKey)
         local state = userInQueueStateCookieRepository.getState(eventId, cookieValidity, secretKey, true)
 
         assert( state.isValid )
@@ -69,6 +77,8 @@ local function UserInQueueStateCookieRepositoryTest()
         assert( mockCookies[cookieKey] ~= nil )
         assert( tonumber(mockCookies[cookieKey].expire) - os.time() - 24 * 60 * 60 < 100 )
 		assert( mockCookies[cookieKey].domain == cookieDomain )
+		assert( mockCookies[cookieKey].isHttpOnly == isCookieHttpOnly )
+		assert( mockCookies[cookieKey].isSecure == isCookieSecure )
 	end
 	test_store_hasValidState_nonExtendableCookie_CookieIsSaved()
 
@@ -78,10 +88,13 @@ local function UserInQueueStateCookieRepositoryTest()
 		local eventId = "event1"
         local secretKey = "4e1deweb821-a82ew5-49da-acdqq0-5d3476f2068db"
         local cookieDomain = ".test.com"
+        local isCookieHttpOnly = false
+        local isCookieSecure = false
         local queueId = "queueId"
         local cookieValidity = 10
 
-        userInQueueStateCookieRepository.store(eventId, queueId, 3, cookieDomain, "Idle", secretKey)
+        userInQueueStateCookieRepository.store(
+            eventId, queueId, 3, cookieDomain, isCookieHttpOnly, isCookieSecure, "Idle", secretKey)
         local state = userInQueueStateCookieRepository.getState(eventId, cookieValidity, secretKey, true)
         assert( state.isValid )
 
@@ -100,10 +113,13 @@ local function UserInQueueStateCookieRepositoryTest()
 		local eventId = "event1"
         local secretKey = "4e1deweb821-a82ew5-49da-acdqq0-5d3476f2068db"
         local cookieDomain = ".test.com"
+        local isCookieHttpOnly = false
+        local isCookieSecure = false
         local queueId = "queueId"
         local cookieValidity = 10
 
-        userInQueueStateCookieRepository.store(eventId, queueId, 3, cookieDomain, "Idle", secretKey)
+        userInQueueStateCookieRepository.store(
+            eventId, queueId, 3, cookieDomain, isCookieHttpOnly, isCookieSecure, "Idle", secretKey)
         local state = userInQueueStateCookieRepository.getState(eventId, cookieValidity, secretKey, true)
         assert( state.isValid )
 
@@ -123,10 +139,13 @@ local function UserInQueueStateCookieRepositoryTest()
 		local eventId = "event1"
         local secretKey = "4e1deweb821-a82ew5-49da-acdqq0-5d3476f2068db"
         local cookieDomain = ".test.com"
+        local isCookieHttpOnly = false
+        local isCookieSecure = false
         local queueId = "queueId"
 		local cookieValidity = -1
 
-        userInQueueStateCookieRepository.store(eventId, queueId, nil, cookieDomain, "Idle", secretKey)
+        userInQueueStateCookieRepository.store(
+            eventId, queueId, nil, cookieDomain, isCookieHttpOnly, isCookieSecure, "Idle", secretKey)
         local state = userInQueueStateCookieRepository.getState(eventId, cookieValidity, secretKey, true)
         assert( state.isValid == false )
     end
@@ -138,10 +157,13 @@ local function UserInQueueStateCookieRepositoryTest()
 		local eventId = "event1"
         local secretKey = "4e1deweb821-a82ew5-49da-acdqq0-5d3476f2068db"
         local cookieDomain = ".test.com"
+        local isCookieHttpOnly = false
+        local isCookieSecure = false
         local queueId = "queueId"
 		local cookieValidity = 10
 
-		userInQueueStateCookieRepository.store(eventId, queueId, nil, cookieDomain, "Queue", secretKey)
+		userInQueueStateCookieRepository.store(
+            eventId, queueId, nil, cookieDomain, isCookieHttpOnly, isCookieSecure, "Queue", secretKey)
         local state = userInQueueStateCookieRepository.getState(eventId, cookieValidity, secretKey, true)
         assert( state.isValid )
 
@@ -168,10 +190,13 @@ local function UserInQueueStateCookieRepositoryTest()
 		local eventId = "event1"
         local secretKey = "4e1deweb821-a82ew5-49da-acdqq0-5d3476f2068db"
         local cookieDomain = ".test.com"
+        local isCookieHttpOnly = false
+        local isCookieSecure = false
         local queueId = "queueId"
         local cookieValidity = 10
 
-        userInQueueStateCookieRepository.store(eventId, queueId, 20, cookieDomain, "Queue", secretKey)
+        userInQueueStateCookieRepository.store(
+            eventId, queueId, 20, cookieDomain, isCookieHttpOnly, isCookieSecure, "Queue", secretKey)
         local state = userInQueueStateCookieRepository.getState(eventId, cookieValidity, secretKey, true)
         assert( state.isValid )
 
@@ -188,10 +213,13 @@ local function UserInQueueStateCookieRepositoryTest()
 		local eventId = "event1"
         local secretKey = "4e1deweb821-a82ew5-49da-acdqq0-5d3476f2068db"
         local cookieDomain = ".test.com"
+        local isCookieHttpOnly = false
+        local isCookieSecure = false
         local queueId = "queueId"
 		local cookieValidity = 20
 
-        userInQueueStateCookieRepository.store(eventId, queueId, 20, cookieDomain, "Queue", secretKey)
+        userInQueueStateCookieRepository.store(
+            eventId, queueId, 20, cookieDomain, isCookieHttpOnly, isCookieSecure, "Queue", secretKey)
         local state = userInQueueStateCookieRepository.getState(eventId, cookieValidity, secretKey, true)
         assert( state.isValid )
 
@@ -213,11 +241,15 @@ local function UserInQueueStateCookieRepositoryTest()
 		local eventId = "event1"
         local secretKey = "4e1deweb821-a82ew5-49da-acdqq0-5d3476f2068db"
         local cookieDomain = ".test.com"
+        local isCookieHttpOnly = true
+        local isCookieSecure = true
         local queueId = "queueId"
         local cookieKey = userInQueueStateCookieRepository.getCookieKey(eventId)
 
-        userInQueueStateCookieRepository.store(eventId, queueId, nil, cookieDomain, "Queue", secretKey)
-        userInQueueStateCookieRepository.reissueQueueCookie(eventId, 12, cookieDomain, secretKey)
+        userInQueueStateCookieRepository.store(
+            eventId, queueId, nil, cookieDomain, isCookieHttpOnly, isCookieSecure, "Queue", secretKey)
+        userInQueueStateCookieRepository.reissueQueueCookie(
+            eventId, 12, cookieDomain, isCookieHttpOnly, isCookieSecure, secretKey)
 
         local state = userInQueueStateCookieRepository.getState(eventId, 5, secretKey, true)
         assert( state.isValid )
@@ -225,6 +257,8 @@ local function UserInQueueStateCookieRepositoryTest()
         assert( state:isStateExtendable() )
 		assert( tonumber(mockCookies[cookieKey].expire) - os.time() - 24 * 60 * 60 < 100 )
 		assert( mockCookies[cookieKey].domain == cookieDomain )
+		assert( mockCookies[cookieKey].isHttpOnly == isCookieHttpOnly )
+		assert( mockCookies[cookieKey].isSecure == isCookieSecure )
     end
 	test_extendQueueCookie_cookieExist()
 
@@ -234,13 +268,16 @@ local function UserInQueueStateCookieRepositoryTest()
 		local eventId = "event1"
         local secretKey = "4e1deweb821-a82ew5-49da-acdqq0-5d3476f2068db"
         local cookieDomain = ".test.com"
-        local queueId = "queueId"
+        local isCookieHttpOnly = false
+        local isCookieSecure = false
 
-        userInQueueStateCookieRepository.store("event2", queueId, 20, cookieDomain, "Queue", secretKey)
-        userInQueueStateCookieRepository.reissueQueueCookie(eventId, 12, cookieDomain, secretKey)
+        userInQueueStateCookieRepository.reissueQueueCookie(
+            eventId, 12, cookieDomain, isCookieHttpOnly, isCookieSecure, secretKey)
 
-		local cookieKey = userInQueueStateCookieRepository.getCookieKey("event2")
-		assert( mockCookies[cookieKey] ~= nil )
+		local state = userInQueueStateCookieRepository.getState(eventId, 12, secretKey)
+        assert(state.isValid == false)
+        assert(state:isStateExtendable() == false)
+		assert(state.queueId == nil)
     end
 	test_extendQueueCookie_cookieDoesNotExist()
 

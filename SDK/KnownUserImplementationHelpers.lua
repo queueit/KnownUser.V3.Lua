@@ -35,20 +35,14 @@ local iHelpers =
 	{
 		cookieOptions =
 		{
-			-- true if response cookies should have httponly flag set
-			-- only enable if you use pure server-side integration e.g. not JS Hybrid
-			httpOnly = false,
-			-- true if response cookies should have secure flag set
-			-- only enable if your website runs on https
-			secure = false,
 			-- set to any string value (none, strict, lax) if response cookies should have samesite flag set
 			-- only use 'strict' if your queue protected site stays on same domain (no navigation to subdomains)
 			sameSite = nil
 		},
-		-- arguments: name, value, expire, domain
+		-- arguments: name, value, expire, domain, isHttpOnly, isSecure
 		-- returns: void
-		setCookie = function(_, _, _, _)
-			error("Not implemented : response.setCookie(name, value, expire, domain)")
+		setCookie = function(_, _, _, _, _, _)
+			error("Not implemented : response.setCookie(name, value, expire, domain, isHttpOnly, isSecure)")
 		end
 	},
 	hash =

@@ -5,7 +5,7 @@ local utils = require("Utils")
 local userInQueueStateCookieRepository = require("UserInQueueStateCookieRepository")
 
 local svc = {
-	SDK_VERSION = "v3-lua-" .. "3.6.5",
+	SDK_VERSION = "v3-lua-" .. "3.7.0",
 	TokenValidationResult = {
 		create = function(isValid, errorCode)
 			local model = {
@@ -90,8 +90,11 @@ local function getValidTokenResult(config, queueParams, secretKey)
 		queueParams.queueId,
 		queueParams.cookieValidityMinutes,
 		utils.toString(config.cookieDomain),
+		config.isCookieHttpOnly,
+		config.isCoookieSecure,
 		queueParams.redirectType,
 		secretKey)
+
 	return models.RequestValidationResult.create(
 		models.ActionTypes.QueueAction, config.eventId, queueParams.queueId,
 		nil, queueParams.redirectType, config.actionName)
@@ -126,6 +129,8 @@ svc.validateQueueRequest = function(targetUrl, queueitToken, config, customerId,
 				state.queueId,
 				nil,
 				utils.toString(config.cookieDomain),
+				config.isCookieHttpOnly,
+				config.isCookieSecure,
 				state.redirectType,
 				secretKey)
 		end
@@ -154,7 +159,8 @@ svc.validateQueueRequest = function(targetUrl, queueitToken, config, customerId,
 	end
 
 	if (state.isFound and not isTokenValid) then
-		userInQueueStateCookieRepository.cancelQueueCookie(config.eventId, config.cookieDomain);
+		userInQueueStateCookieRepository.cancelQueueCookie(
+			config.eventId, config.cookieDomain, config.isCookieHttpOnly, config.isCookieSecure);
 	end
 
 	return requestValidationResult;
@@ -163,8 +169,8 @@ end
 svc.validateCancelRequest = function(targetUrl, cancelConfig, customerId, secretKey)
 	-- we do not care how long cookie is valid while canceling cookie
 	local state = userInQueueStateCookieRepository.getState(cancelConfig.eventId, -1, secretKey, false)
+
 	if (state.isValid) then
-		local uriPath = "cancel/" .. customerId .. "/" .. cancelConfig.eventId .. "/"
 		userInQueueStateCookieRepository.cancelQueueCookie(cancelConfig.eventId, cancelConfig.cookieDomain)
 
 		local rParam = ""
@@ -173,6 +179,12 @@ svc.validateCancelRequest = function(targetUrl, cancelConfig, customerId, secret
 		end
 		local query = getQueryString(
 			customerId, cancelConfig.eventId, cancelConfig.version, cancelConfig.actionName, nil, nil) .. rParam
+
+		local uriPath = "cancel/" .. customerId .. "/" .. cancelConfig.eventId
+		if (state.queueId and state.queueId ~= "") then
+			uriPath = uriPath .. "/" .. state.queueId
+		end
+
 		local redirectUrl = generateRedirectUrl(cancelConfig.queueDomain, uriPath, query)
 
 		return models.RequestValidationResult.create(
@@ -184,8 +196,10 @@ svc.validateCancelRequest = function(targetUrl, cancelConfig, customerId, secret
 	end
 end
 
-svc.extendQueueCookie = function(eventId, cookieValidityMinutes, cookieDomain, secretKey)
-	userInQueueStateCookieRepository.reissueQueueCookie(eventId, cookieValidityMinutes, cookieDomain, secretKey)
+svc.extendQueueCookie = function(
+	eventId, cookieValidityMinutes, cookieDomain, isCookieHttpOnly, isCookieSecure, secretKey)
+	userInQueueStateCookieRepository.reissueQueueCookie(
+		eventId, cookieValidityMinutes, cookieDomain, isCookieHttpOnly, isCookieSecure, secretKey)
 end
 
 svc.getIgnoreActionResult = function(actionName)
