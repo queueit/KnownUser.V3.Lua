@@ -47,8 +47,8 @@ server {
         -- It's important that the selected option is fast, 
         -- not causing any performance bottlenecks because the file would be loaded on each request.
         local integrationConfigFilePath = "./usr/queueit/integrationconfig.json"
-        local integrationConfigFile = io.open(integrationConfigFilePath, "rb")
-        local integrationConfigJson = integrationConfigFile:read("*all")
+        local integrationConfigFile = io.open(integrationConfigFilePath, "r")
+        local integrationConfigJson = integrationConfigFile:read("*a")
         integrationConfigFile:close()
 
         local qit = require("KnownUserNginxHandler")
