@@ -53,11 +53,6 @@ server {
 
         local qit = require("KnownUserNginxHandler")
 
-        -- If you want to enable secure or http only cookie settings then change options below.
-        -- httpOnly: Only enable if you use pure server-side integration e.g. not JS Hybrid.
-        -- secure: Only enable if your website runs purely on https.
-        qit.setOptions({ httpOnly = false, secure = false })
-
         qit.handleByIntegrationConfig(customerId, secretKey, integrationConfigJson)
     }
 }
