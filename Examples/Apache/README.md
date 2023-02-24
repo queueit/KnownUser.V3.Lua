@@ -1,11 +1,16 @@
 # Apache Lua Connector
 
+
+## Requirements
+- The minimum working version of Apache is v.2.3. This is the lowest version on which the Lua module can be enabled.
+- Lua module v.5.1. enabled in the Apache configuration. **Using a Lua module with a version number higher than this (ex. v.5.3) will not work.**
+
+
 ## Implementation
 
 A quick way to get started with the implementation of this connecotr is to use the ready-made example *[ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua)* using Apache httpd handler. It ships with the SDK and allows for an easy setup without having to implement a custom Lua handler. All the configuration can be done in the Apache httpd configuration (for example in `httpd.conf` or `apache2.conf`).
 
-Download and store the integration configuration in `/var/www/lua/integration_config.json`.
-When the integration configuration changes, this file needs to be updated.
+Download and store the integration configuration in `/var/www/lua/integration_config.json`. When the integration configuration changes, this file needs to be updated.
 
 Note that setting a custom error response code using `QUEUEIT_ERROR_CODE` is optional.
 If no error code is set, the handler declines to act if an error occurs and the request is let through.
@@ -49,6 +54,7 @@ end
 ```
 You will quickly notice if this function fails because its called on each request. Check you Apache logs for any warnings/errors.
 The example above (and default implementation) also contains `r:debug` so you can see what URLs are being built. It's important to note that these URLs should be public ones (e.g. use real domain, no internal IPs). You can test this by opening up a browser and visiting that generated URL.
+
 
 ## Alternative Implementation
 
