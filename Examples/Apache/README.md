@@ -2,9 +2,7 @@
 
 ## Implementation
 
-A quick way to get started is to use the ready-made example *[ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua)* using Apache httpd handler.
-It ships with the SDK and allows for an easy setup without having to implement a custom Lua handler.
-All the configuration is done in Apache httpd configuration (for example in `httpd.conf` or `apache2.conf`).
+A quick way to get started with the implementation of this connecotr is to use the ready-made example *[ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua)* using Apache httpd handler. It ships with the SDK and allows for an easy setup without having to implement a custom Lua handler. All the configuration can be done in the Apache httpd configuration (for example in `httpd.conf` or `apache2.conf`).
 
 Download and store the integration configuration in `/var/www/lua/integration_config.json`.
 When the integration configuration changes, this file needs to be updated.
