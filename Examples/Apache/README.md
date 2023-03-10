@@ -7,43 +7,70 @@
 
 
 ## Implementation
+A quick way to get started with the implementation of this connecotr is to use the ready-made example *[ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua)* which uses the Apache httpd handler. It ships with the SDK and allows for an easy setup without having to implement a custom Lua handler. All the configuration can be done in the Apache httpd configuration (for example in `httpd.conf` or `apache2.conf`).
 
-A quick way to get started with the implementation of this connecotr is to use the ready-made example *[ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua)* using Apache httpd handler. It ships with the SDK and allows for an easy setup without having to implement a custom Lua handler. All the configuration can be done in the Apache httpd configuration (for example in `httpd.conf` or `apache2.conf`).
 
-Download and store the integration configuration in `/var/www/lua/integration_config.json`. When the integration configuration changes, this file needs to be updated.
+### 1. Download the Queue-it Lua connector to the {LIB_FOLDER}
+A good best-practice is to store it in the `/usr/local/lib/` folder. Go to that folder, download the latest release from this repository and extract it:
+
+```bash
+cd /usr/local/lib
+curl https://github.com/queueit/KnownUser.V3.Lua/archive/refs/tags/3.7.tar.gz -o lua.tar.gz
+tar -xf lua.tar.gz
+rm lua.tar.gz
+```
+
+This way the library is now extracted to `/usr/local/lib/KnownUser.V3.Lua-3.7`. So, in the below configuration where you see `{LIB_FOLDER}` you will need to replace it with the above path.
+
+
+### 2. Download the Queue-it integration configuration file to the {CFG_FILE}
+A good best-practice is to store it in the `/usr/local/etc/` folder. Go to that folder and download the latest integration configuration file from the Queue-it API. To do so, you will need to grab your [API key from the GO plaform](https://go.queue-it.net/app/account/api-keys). 
+
+```bash
+curl --request GET https://[your-customer-id].queue-it.net/status/integrationconfig/secure/[your-customer-id] --header "api-key: [your-API-key]" --header "Host: queue-it.net" > /usr/local/etc/qit_integration_configuration.json
+```
+
+This way the configuration file is now stored as `/usr/local/etc/qit_integration_configuration.json`. So, in the below configuration where you see `{CFG_FILE}` you will need to replace it with the above path.
+
+
+Note that whenever you change and publish a new configuration on the GO platform, this file needs to be updated. You can just re-issue the above curl command to pull the configuration again. For more advanced/automated metods please refer to the [Downloading the Integration Configuration](https://github.com/queueit/Documentation/tree/main/serverside-connectors/integration-config) guide.
+
+
+### 3. Place the implementation code to the Apache web server configuration
+The following code snippet needs to be added to the relevant section of the Apache configuration file.
+
+```apacheconf 
+SetEnv          QUEUEIT_CUSTOMER_ID     "{CUSTOMER_ID}"
+SetEnv          QUEUEIT_SECRET_KEY      "{SECRET_KEY}"
+SetEnv          QUEUEIT_INT_CONF_FILE   "{CFG_FILE}"
+SetEnv          QUEUEIT_ERROR_CODE      "400"
+LuaMapHandler   "{URI_PATTERN}"         "{LIB_FOLDER}/ApacheHandlerUsingConfigFromFile.lua"
+LuaPackagePath  "{LIB_FOLDER}/SDK/?.lua"
+LuaPackagePath  "{LIB_FOLDER}/Helpers/?/?.lua"
+LuaPackagePath  "{LIB_FOLDER}/Handlers/?.lua"
+```
+
+All the placeholders in the above configuration snippet need to be replaced with the correct values:
+
+- {CUSTOMER_ID} = Your Customer ID can be found on the [Company Profile](https://go.queue-it.net/companyprofile) section of the GO platform.
+- {SECRET_KEY} = Your KnownUser secret key can be found on the Integration tab of the [Account Settings](https://barcelona.go.queue-it.net/account/settings) section of the GO platform.
+- {LIB_FOLDER} = The path to the folder used in Step 1. where the connector library was downloaded.
+- {CFG_FILE} = The path to the folder used in Step 1. where the connector library was downloaded. 
+- {URI_PATTERN} = Pattern used to match which requests should go through the handler. The default configuration is `/` (forward slash) which will trigger the handler on all requests. The trigger will then use the integration configuration to decide what wil be redirected or ignored. For fine tuning this configuration please refer to the [LuaMapHandler](https://httpd.apache.org/docs/trunk/mod/mod_lua.html#luamaphandler) documentation.
 
 Note that setting a custom error response code using `QUEUEIT_ERROR_CODE` is optional.
 If no error code is set, the handler declines to act if an error occurs and the request is let through.
 
-*[ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua)* also supports cookie flags like `HttpOnly` and `Secure`. 
-Please refer to details inside the lua file on how to enable this (and when NOT to). Mentioned flags are as default disabled.
+### 4. Reload the Apache configuration
+With the modified configuration in place you need to reload the Apache service (tipically with `systemctl reload apache2` or `/etc/init.d/apache2 reload`). Now, you can test by requesting a protected URL.
 
-Then, add the following lines to your Apache httpd configuration, filling in the placeholders denoted by braces (e.g. `{CUSTOMER_ID}`):
 
-```apache2
-LoadModule lua_module modules/mod_lua.so
-[...]
-SetEnv  QUEUEIT_CUSTOMER_ID     "{CUSTOMER_ID}"
-SetEnv  QUEUEIT_SECRET_KEY      "{SECRET_KEY}"
-SetEnv  QUEUEIT_INT_CONF_FILE   "{APP_FOLDER}/integration_config.json"
-SetEnv  QUEUEIT_ERROR_CODE      "400"
-LuaMapHandler  "{URI_PATTERN}"  "{APP_FOLDER}/ApacheHandlerUsingConfigFromFile.lua"
-LuaPackagePath "{APP_FOLDER}/SDK/?.lua"
-LuaPackagePath "{APP_FOLDER}/Helpers/?/?.lua"
-LuaPackagePath "{APP_FOLDER}/Handlers/?.lua"
-```
+## Customizing the Handler
+There might be specific circumstances in which you need to review and change the default behaviour of the handler file or the included functions. 
 
-- {CUSTOMER_ID} = Your customer ID found via GO Queue-it platform.
-- {SECRET_KEY} = Your secret key found via GO Queue-it platform.
-- {APP_FOLDER} = Apache www folder where your app/integration is located. Ex. 'C:/wamp64/www/lua'. Make sure SDK, Handlers and Helpers folders (incl. content) are copied here. 
-- {URI_PATTERN} = Pattern used to match which URLs should go through the handler. https://httpd.apache.org/docs/trunk/mod/mod_lua.html#luamaphandler
+One of these circumstances is when the `getAbsoluteUri` located in [ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua) needs be be adjusted because the `r.is_https` and/or `r.hostname` variables are unavailable on your specific infrastructure. In these cases you would need to replace with hardcoded values (or settings read from environment variables) to mach that of your environment. For example:
 
-#### Resolving current request URL
-The SDK needs to be able to resolve the current request URL. It does it by calling the function `getAbsoluteUri` located in *[ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua)*.
-
-Sometimes this function needs be be adjusted depending on what is available in your infrastructure. Could be that `r.is_https` and/or `r.hostname` are unavailable and then the function call would fail. In these cases you would need to replace with hardcoded values (or settings read from environment variables) ex.:
-
-```
+```lua
 iHelpers.request.getAbsoluteUri = function()   
    local fullUrl = string.format("https://%s%s",
       "my-domain.example",
@@ -52,20 +79,17 @@ iHelpers.request.getAbsoluteUri = function()
    return fullUrl
 end
 ```
-You will quickly notice if this function fails because its called on each request. Check you Apache logs for any warnings/errors.
+
 The example above (and default implementation) also contains `r:debug` so you can see what URLs are being built. It's important to note that these URLs should be public ones (e.g. use real domain, no internal IPs). You can test this by opening up a browser and visiting that generated URL.
 
 
-## Alternative Implementation
-
-### Queue configuration
-As an alternative to the above, you can specify the configuration in code without using the Trigger/Action paradigm. 
-In this case it is important *only to queue-up page requests* and not requests for resources. 
+## Alternative implementation using inline configuration
+As an alternative to the above, you can specify the configuration in code without using the Trigger/Action paradigm and therefore without using the integration configuratin json file. In this case it is important *only to queue-up page requests* and not requests for other resources (assets). 
 This can be done by adding custom filtering logic before calling the `kuHandler.handleByLocalConfig()` method. 
 
 The following is an example of how the handle function would look if the configuration is specified in code (using ApacheHandler):
 
-```
+```lua
 function handle(request_rec)
    local success, result = pcall
    (
