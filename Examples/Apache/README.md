@@ -2,16 +2,17 @@
 
 
 ## Requirements
-- The minimum working version of Apache is v.2.3. This is the lowest version on which the Lua module can be enabled.
-- Lua module v.5.1. enabled in the Apache configuration. **Using a Lua module with a version number higher than this (ex. v.5.3) will not work.**
+-  **Apache v.2.3** or above. The minimum working version of Apache on which the Lua module can be enabled.
+- **Lua v.5.1**. Using a Lua module with a version number higher than this (ex. v.5.3) will not work.
+- Lua module enabled for Apache. 
 
 
 ## Implementation
-A quick way to get started with the implementation of this connecotr is to use the ready-made example *[ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua)* which uses the Apache httpd handler. It ships with the SDK and allows for an easy setup without having to implement a custom Lua handler. All the configuration can be done in the Apache httpd configuration (for example in `httpd.conf` or `apache2.conf`).
+The default implementation of this connector makes use of the ready-made example *[ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua)* which uses the Apache httpd handler. It ships with the SDK and allows for an easy setup without having to implement a custom Lua handler. All the configuration can be done in the Apache httpd configuration (for example in `httpd.conf` or `apache2.conf`).
 
 
 ### 1. Download the Queue-it Lua connector to the {LIB_FOLDER}
-A good best-practice is to store it in the `/usr/local/lib/` folder. Go to that folder, download the latest release from this repository and extract it:
+A good practice is to store the Queue-it connector library in the `/usr/local/lib/` folder. Go to this folder, download the latest release from this repository and extract it:
 
 ```bash
 cd /usr/local/lib
@@ -20,18 +21,20 @@ tar -xf lua.tar.gz
 rm lua.tar.gz
 ```
 
-This way the library is now extracted to `/usr/local/lib/KnownUser.V3.Lua-3.7`. So, in the below configuration where you see `{LIB_FOLDER}` you will need to replace it with the above path.
+This way the library is now extracted to `/usr/local/lib/KnownUser.V3.Lua-3.7`. So, in the below configuration where you see `{LIB_FOLDER}` you will need to replace it with the above path to the library.
 
 
 ### 2. Download the Queue-it integration configuration file to the {CFG_FILE}
-A good best-practice is to store it in the `/usr/local/etc/` folder. Go to that folder and download the latest integration configuration file from the Queue-it API. To do so, you will need to grab your [API key from the GO plaform](https://go.queue-it.net/app/account/api-keys). 
+A good practice is to store this file in the `/usr/local/etc/` folder. You can download the latest integration configuration file from the Queue-it API. To do so, you will need to:
+- copy your [API key](https://go.queue-it.net/app/account/api-keys) from the GO plaform,
+- copy your Customer ID from the [Company Profile](https://go.queue-it.net/companyprofile) section of the GO platform,
+- and replace both values in the below command before executing it.
 
 ```bash
 curl --request GET https://[your-customer-id].queue-it.net/status/integrationconfig/secure/[your-customer-id] --header "api-key: [your-API-key]" --header "Host: queue-it.net" > /usr/local/etc/qit_integration_configuration.json
 ```
 
-This way the configuration file is now stored as `/usr/local/etc/qit_integration_configuration.json`. So, in the below configuration where you see `{CFG_FILE}` you will need to replace it with the above path.
-
+The configuration file is now stored as `/usr/local/etc/qit_integration_configuration.json`. So, in the below configuration where you see `{CFG_FILE}` you will need to replace it with this file path.
 
 Note that whenever you change and publish a new configuration on the GO platform, this file needs to be updated. You can just re-issue the above curl command to pull the configuration again. For more advanced/automated metods please refer to the [Downloading the Integration Configuration](https://github.com/queueit/Documentation/tree/main/serverside-connectors/integration-config) guide.
 
@@ -54,8 +57,8 @@ All the placeholders in the above configuration snippet need to be replaced with
 
 - {CUSTOMER_ID} = Your Customer ID can be found on the [Company Profile](https://go.queue-it.net/companyprofile) section of the GO platform.
 - {SECRET_KEY} = Your KnownUser secret key can be found on the Integration tab of the [Account Settings](https://barcelona.go.queue-it.net/account/settings) section of the GO platform.
-- {LIB_FOLDER} = The path to the folder used in Step 1. where the connector library was downloaded.
-- {CFG_FILE} = The path to the folder used in Step 1. where the connector library was downloaded. 
+- {LIB_FOLDER} = The path to the connector library folder downloaded in step 1.
+- {CFG_FILE} = The path to the integration configuration file downloaded in Step 2.
 - {URI_PATTERN} = Pattern used to match which requests should go through the handler. The default configuration is `/` (forward slash) which will trigger the handler on all requests. The trigger will then use the integration configuration to decide what wil be redirected or ignored. For fine tuning this configuration please refer to the [LuaMapHandler](https://httpd.apache.org/docs/trunk/mod/mod_lua.html#luamaphandler) documentation.
 
 Note that setting a custom error response code using `QUEUEIT_ERROR_CODE` is optional.
@@ -65,10 +68,10 @@ If no error code is set, the handler declines to act if an error occurs and the 
 With the modified configuration in place you need to reload the Apache service (tipically with `systemctl reload apache2` or `/etc/init.d/apache2 reload`). Now, you can test by requesting a protected URL.
 
 
-## Customizing the Handler
+## Optional Handler customizations
 There might be specific circumstances in which you need to review and change the default behaviour of the handler file or the included functions. 
 
-One of these circumstances is when the `getAbsoluteUri` located in [ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua) needs be be adjusted because the `r.is_https` and/or `r.hostname` variables are unavailable on your specific infrastructure. In these cases you would need to replace with hardcoded values (or settings read from environment variables) to mach that of your environment. For example:
+One of these circumstances is when the `getAbsoluteUri` located in [ApacheHandlerUsingConfigFromFile](ApacheHandlerUsingConfigFromFile.lua) needs be be adjusted because the `r.is_https` and/or `r.hostname` variables are unavailable on your specific infrastructure. In these cases you need to hardcode the correct values (or settings read from environment variables) to mach that of your environment. For example:
 
 ```lua
 iHelpers.request.getAbsoluteUri = function()   
