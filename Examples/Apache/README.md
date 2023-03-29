@@ -16,7 +16,7 @@ A good practice is to store the Queue-it connector library in the `/usr/local/li
 
 ```bash
 cd /usr/local/lib
-curl https://github.com/queueit/KnownUser.V3.Lua/archive/refs/tags/3.7.tar.gz -o lua.tar.gz
+curl https://github.com/queueit/KnownUser.V3.Lua/archive/refs/tags/3.7.tar.gz -Lo lua.tar.gz
 tar -xf lua.tar.gz
 rm lua.tar.gz
 ```
