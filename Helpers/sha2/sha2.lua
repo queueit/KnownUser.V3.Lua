@@ -11,7 +11,7 @@
 --       and a bonus: MD5, SHA-1, HMAC
 --    Written in pure Lua.
 --    Compatible with:
---       Lua 5.1, Lua 5.2, Lua 5.3, Lua 5.4, Fengari, LuaJIT 2.0/2.1 (any CPU endianness).
+--       Lua 5.1, Lua 5.2, Lua 5.3, Lua 5.4, Lua 5.5, Fengari, LuaJIT 2.0/2.1 (any CPU endianness).
 --    Main feature of this module: it is heavily optimized for speed.
 --    For every Lua version the module contains particular implementation branch to get benefits from version-specific features.
 --       - branch for Lua 5.1 (emulating bitwise operators using look-up table)
@@ -37,6 +37,8 @@
 -- CHANGELOG:
 --  version     date      description
 --  -------  ----------   -----------
+--    7q     2026-05-18   Queue-it patch: Lua 5.5 compatibility (for-loop control vars are implicit <const> in 5.5;
+--                        renamed outer loop var and shadowed with a mutable local at the 15 sites that reassign it)
 --     7     2019-03-17   Added functions to convert to/from base64
 --     6     2018-11-12   HMAC added (applicable to any hash function from this module)
 --     5     2018-11-10   One more bonus added: SHA-1
@@ -237,7 +239,8 @@ elseif branch == "EMUL" then
    local AND_of_two_bytes = {[0] = 0}  -- look-up table (256*256 entries)
    local idx = 0
    for y = 0, 127 * 256, 256 do
-      for x = y, y + 127 do
+      for x0 = y, y + 127 do
+         local x = x0
          x = AND_of_two_bytes[x] * 2
          AND_of_two_bytes[idx] = x
          AND_of_two_bytes[idx + 1] = x
@@ -332,7 +335,8 @@ if branch == "FFI" then
    function sha256_feed_64(H, K, str, offs, size)
       -- offs >= 0, size >= 0, size is multiple of 64
       local W = common_W_FFI_int32
-      for pos = offs, offs + size - 1, 64 do
+      for pos0 = offs, offs + size - 1, 64 do
+         local pos = pos0
          for j = 0, 15 do
             pos = pos + 4
             local a, b, c, d = byte(str, pos - 3, pos)   -- slow, but doesn't depend on endianness
@@ -398,7 +402,8 @@ if branch == "FFI" then
       function sha512_feed_128(H, _, K, _, str, offs, size)
          -- offs >= 0, size >= 0, size is multiple of 128
          local W = common_W_FFI_int64
-         for pos = offs, offs + size - 1, 128 do
+         for pos0 = offs, offs + size - 1, 128 do
+            local pos = pos0
             for j = 0, 15 do
                pos = pos + 8
                local a, b, c, d, e, f, g, h = byte(str, pos - 7, pos)   -- slow, but doesn't depend on endianness
@@ -543,7 +548,8 @@ if branch == "FFI" then
       function sha512_feed_128(H, _, K, _, str, offs, size)
          -- offs >= 0, size >= 0, size is multiple of 128
          local W = common_W_FFI_int64
-         for pos = offs, offs + size - 1, 128 do
+         for pos0 = offs, offs + size - 1, 128 do
+            local pos = pos0
             for j = 0, 15 do
                pos = pos + 8
                local a, b, c, d, e, f, g, h = byte(str, pos - 7, pos)   -- slow, but doesn't depend on endianness
@@ -597,7 +603,8 @@ if branch == "FFI" then
    function md5_feed_64(H, K, str, offs, size)
       -- offs >= 0, size >= 0, size is multiple of 64
       local W = common_W_FFI_int32
-      for pos = offs, offs + size - 1, 64 do
+      for pos0 = offs, offs + size - 1, 64 do
+         local pos = pos0
          for j = 0, 15 do
             pos = pos + 4
             local a, b, c, d = byte(str, pos - 3, pos)   -- slow, but doesn't depend on endianness
@@ -640,7 +647,8 @@ if branch == "FFI" then
    function sha1_feed_64(H, str, offs, size)
       -- offs >= 0, size >= 0, size is multiple of 64
       local W = common_W_FFI_int32
-      for pos = offs, offs + size - 1, 64 do
+      for pos0 = offs, offs + size - 1, 64 do
+         local pos = pos0
          for j = 0, 15 do
             pos = pos + 4
             local a, b, c, d = byte(str, pos - 3, pos)   -- slow, but doesn't depend on endianness
@@ -692,7 +700,8 @@ if branch == "LJ" then
    function sha256_feed_64(H, K, str, offs, size)
       -- offs >= 0, size >= 0, size is multiple of 64
       local W = common_W
-      for pos = offs, offs + size - 1, 64 do
+      for pos0 = offs, offs + size - 1, 64 do
+         local pos = pos0
          for j = 1, 16 do
             pos = pos + 4
             local a, b, c, d = byte(str, pos - 3, pos)
@@ -750,7 +759,8 @@ if branch == "LJ" then
          -- offs >= 0, size >= 0, size is multiple of 128
          -- W1_hi, W1_lo, W2_hi, W2_lo, ...   Wk_hi = W[2*k-1], Wk_lo = W[2*k]
          local W = common_W
-         for pos = offs, offs + size - 1, 128 do
+         for pos0 = offs, offs + size - 1, 128 do
+            local pos = pos0
             for j = 1, 16*2 do
                pos = pos + 4
                local a, b, c, d = byte(str, pos - 3, pos)
@@ -806,7 +816,8 @@ if branch == "LJ" then
          -- offs >= 0, size >= 0, size is multiple of 128
          -- W1_hi, W1_lo, W2_hi, W2_lo, ...   Wk_hi = W[2*k-1], Wk_lo = W[2*k]
          local W = common_W
-         for pos = offs, offs + size - 1, 128 do
+         for pos0 = offs, offs + size - 1, 128 do
+            local pos = pos0
             for j = 1, 16*2 do
                pos = pos + 4
                local a, b, c, d = byte(str, pos - 3, pos)
@@ -859,7 +870,8 @@ if branch == "LJ" then
    function md5_feed_64(H, K, str, offs, size)
       -- offs >= 0, size >= 0, size is multiple of 64
       local W = common_W
-      for pos = offs, offs + size - 1, 64 do
+      for pos0 = offs, offs + size - 1, 64 do
+         local pos = pos0
          for j = 1, 16 do
             pos = pos + 4
             local a, b, c, d = byte(str, pos - 3, pos)
@@ -902,7 +914,8 @@ if branch == "LJ" then
    function sha1_feed_64(H, str, offs, size)
       -- offs >= 0, size >= 0, size is multiple of 64
       local W = common_W
-      for pos = offs, offs + size - 1, 64 do
+      for pos0 = offs, offs + size - 1, 64 do
+         local pos = pos0
          for j = 1, 16 do
             pos = pos + 4
             local a, b, c, d = byte(str, pos - 3, pos)
@@ -1413,7 +1426,8 @@ if branch == "LIB32" or branch == "EMUL" then
       -- offs >= 0, size >= 0, size is multiple of 64
       local W = common_W
       local h1, h2, h3, h4, h5, h6, h7, h8 = H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
-      for pos = offs, offs + size - 1, 64 do
+      for pos0 = offs, offs + size - 1, 64 do
+         local pos = pos0
          for j = 1, 16 do
             pos = pos + 4
             local a, b, c, d = byte(str, pos - 3, pos)
@@ -1447,7 +1461,8 @@ if branch == "LIB32" or branch == "EMUL" then
       local W = common_W
       local h1_lo, h2_lo, h3_lo, h4_lo, h5_lo, h6_lo, h7_lo, h8_lo = H_lo[1], H_lo[2], H_lo[3], H_lo[4], H_lo[5], H_lo[6], H_lo[7], H_lo[8]
       local h1_hi, h2_hi, h3_hi, h4_hi, h5_hi, h6_hi, h7_hi, h8_hi = H_hi[1], H_hi[2], H_hi[3], H_hi[4], H_hi[5], H_hi[6], H_hi[7], H_hi[8]
-      for pos = offs, offs + size - 1, 128 do
+      for pos0 = offs, offs + size - 1, 128 do
+         local pos = pos0
          for j = 1, 16*2 do
             pos = pos + 4
             local a, b, c, d = byte(str, pos - 3, pos)
@@ -1519,7 +1534,8 @@ if branch == "LIB32" or branch == "EMUL" then
       -- offs >= 0, size >= 0, size is multiple of 64
       local W, md5_next_shift = common_W, md5_next_shift
       local h1, h2, h3, h4 = H[1], H[2], H[3], H[4]
-      for pos = offs, offs + size - 1, 64 do
+      for pos0 = offs, offs + size - 1, 64 do
+         local pos = pos0
          for j = 1, 16 do
             pos = pos + 4
             local a, b, c, d = byte(str, pos - 3, pos)
@@ -1574,7 +1590,8 @@ if branch == "LIB32" or branch == "EMUL" then
       -- offs >= 0, size >= 0, size is multiple of 64
       local W = common_W
       local h1, h2, h3, h4, h5 = H[1], H[2], H[3], H[4], H[5]
-      for pos = offs, offs + size - 1, 64 do
+      for pos0 = offs, offs + size - 1, 64 do
+         local pos = pos0
          for j = 1, 16 do
             pos = pos + 4
             local a, b, c, d = byte(str, pos - 3, pos)

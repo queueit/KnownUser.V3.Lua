@@ -10,6 +10,24 @@ local function test_hash_hmac_sha256_encode_correct()
 end
 test_hash_hmac_sha256_encode_correct()
 
+-- Regression coverage for the Lua 5.5 compatibility patch in Helpers/sha2/sha2.lua.
+-- Lua 5.5 makes numeric for-loop control variables implicit <const>, which caused
+-- the upstream sha2 module to fail to parse. Loading sha2 here exercises the parser
+-- on every Lua version under test; the assertions verify each hash entry point still
+-- produces correct output against well-known RFC test vectors.
+local function test_sha2_library_known_vectors()
+	local sha2 = require("sha2")
+
+	assert(sha2.sha256("abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+	assert(sha2.sha512("abc") == "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a"
+		.. "2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f")
+	assert(sha2.sha1("abc") == "a9993e364706816aba3e25717850c26c9cd0d89d")
+	assert(sha2.md5("abc") == "900150983cd24fb0d6963f7d28e17f72")
+	assert(sha2.hmac(sha2.sha256, "key", "The quick brown fox jumps over the lazy dog")
+		== "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8")
+end
+test_sha2_library_known_vectors()
+
 local function test_jsonHelper_correctNullHandling()
 	local integrationConfigJson =
 	[[
