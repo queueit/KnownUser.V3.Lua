@@ -5,7 +5,7 @@ local utils = require("Utils")
 local userInQueueStateCookieRepository = require("UserInQueueStateCookieRepository")
 
 local svc = {
-	SDK_VERSION = "v3-lua-" .. "3.7.0",
+	SDK_VERSION = "v3-lua-" .. "3.7.1",
 	TokenValidationResult = {
 		create = function(isValid, errorCode)
 			local model = {
