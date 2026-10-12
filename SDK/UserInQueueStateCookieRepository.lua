@@ -28,9 +28,10 @@ local function getCookieNameValueMap(cookieValue)
 	local cookieNameValues = utils.explode("&", cookieValue)
 
 	for _, cookieNameValue in pairs(cookieNameValues) do
-		local arr = utils.explode("=", cookieNameValue)
-		if(arr[1] ~= nil and arr[2] ~= nil) then
-			result[arr[1]] = arr[2]
+		-- Split on the first "=" and keep empty values (SafetyNet cookies have "QueueId=")
+		local key, value = string.match(cookieNameValue, "^([^=]+)=(.*)$")
+		if(key ~= nil) then
+			result[key] = value
 		end
 	end
 

@@ -367,6 +367,30 @@ local function UserInQueueStateCookieRepositoryTest()
 	end
     test_getState_validCookieFormat_nonExtendable()
 
+	-- SafetyNet visitors are not assigned a queue position, so QueueId is empty
+	local function test_getState_safetyNetCookie_emptyQueueId_stateIsValid()
+		mockCookies = { } -- reset
+
+		local eventId = "event1"
+		local secretKey = "4e1deweb821-a82ew5-49da-acdqq0-5d3476f2068db"
+		local cookieDomain = ".test.com"
+		local issueTime = os.time()
+		local hash = generateHash(eventId, "", 3, "safetynet", issueTime, secretKey)
+
+		local cookieKey = userInQueueStateCookieRepository.getCookieKey(eventId)
+		iHelpers.response.setCookie(
+			cookieKey, "EventId=" .. eventId .. "&QueueId=" ..
+			"&FixedValidityMins=3&RedirectType=safetynet&IssueTime=" .. issueTime ..
+			"&Hash=" .. hash, os.time() + (24*60*60), cookieDomain)
+		local state = userInQueueStateCookieRepository.getState(eventId, 10, secretKey, true)
+
+		assert( state.isValid )
+		assert( state.isFound )
+		assert( state.queueId == "" )
+		assert( state.redirectType == "safetynet" )
+	end
+	test_getState_safetyNetCookie_emptyQueueId_stateIsValid()
+
     local function test_getState_noCookie()
         mockCookies = { } -- reset
 
